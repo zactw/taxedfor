@@ -2,6 +2,9 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { W2Data } from "../page";
+import ShareCard from "./ShareCard";
+import StateTaxBreakdown from "./StateTaxBreakdown";
+import ProUpgrade from "./ProUpgrade";
 
 interface Props {
   data: W2Data;
@@ -613,6 +616,15 @@ export default function ResultsView({ data, onReset }: Props) {
           <p className="text-gray-500 text-xs mt-2">Federal + FICA + State</p>
         </div>
 
+        {/* Share Card */}
+        <ShareCard
+          federal={federal}
+          socialSecurity={socialSecurity}
+          medicare={medicare}
+          stateTax={stateTax}
+          state={state}
+        />
+
         {/* FICA section */}
         <section className="mb-10">
           <div className="flex items-center gap-3 mb-5">
@@ -696,6 +708,9 @@ export default function ResultsView({ data, onReset }: Props) {
           </div>
         </section>
 
+        {/* State Tax Breakdown (Pro) */}
+        <StateTaxBreakdown stateTax={stateTax} stateCode={state} />
+
         {/* Footnote */}
         <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-5 mb-8 text-center">
           <p className="text-gray-400 text-sm">
@@ -703,6 +718,9 @@ export default function ResultsView({ data, onReset }: Props) {
             Your employer also matches your <strong className="text-white">{formatDollars(totalFica)}</strong> in FICA taxes.
           </p>
         </div>
+
+        {/* Pro Upgrade */}
+        <ProUpgrade />
 
         {/* Reset */}
         <div className="text-center">
