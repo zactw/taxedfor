@@ -1,21 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  webpack: (config, { isServer }) => {
-    if (isServer) {
-      // pdf2pic is optional — don't error if missing
-      config.externals = [
-        ...(Array.isArray(config.externals) ? config.externals : []),
-        ({ request }: { request: string }, callback: (err?: Error | null, result?: string) => void) => {
-          if (request === "pdf2pic") {
-            return callback(undefined, "commonjs pdf2pic");
-          }
-          callback();
-        },
-      ];
-    }
-    return config;
-  },
+  // pdf2pic is an optional runtime dependency for PDF support.
+  // No special config needed — it's require()'d dynamically in the API route.
+  turbopack: {},
 };
 
 export default nextConfig;
