@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo, useRef } from "react";
+import Link from "next/link";
 import { W2Data } from "../page";
 import ShareCard from "./ShareCard";
 import StateTaxBreakdown from "./StateTaxBreakdown";
@@ -431,6 +432,25 @@ export default function ResultsView({ data, onReset }: Props) {
           </div>
         </div>
 
+        {/* Disclaimer notice */}
+        <div
+          className="section-fade"
+          style={{
+            "--section-delay": "50ms",
+            border: "1px solid #333",
+            padding: "0.6rem 1rem",
+            marginBottom: "1.5rem",
+            color: "#666",
+            fontSize: "0.72rem",
+            lineHeight: "1.6",
+            ...mono,
+          } as React.CSSProperties}
+        >
+          &gt; ⚠ NOTICE: Figures are estimates based on FY2024 federal budget allocations.
+          AI parsing and public data sources may have slight inconsistencies with
+          real-world tax figures. Not tax advice.
+        </div>
+
         {/* Share Card */}
         <ShareCard
           federal={federal}
@@ -571,6 +591,28 @@ export default function ResultsView({ data, onReset }: Props) {
           >
             [ &larr; ANALYZE ANOTHER W-2 ]
           </button>
+        </div>
+
+        {/* Legal disclaimer footer */}
+        <div
+          style={{
+            borderTop: "1px solid #222",
+            borderBottom: "1px solid #222",
+            padding: "0.75rem 1rem",
+            marginBottom: "1.5rem",
+            color: "#444",
+            fontSize: "0.7rem",
+            lineHeight: "1.6",
+            ...mono,
+          }}
+        >
+          <div style={{ color: "#333", marginBottom: "0.25rem" }}>{'─'.repeat(60)}</div>
+          <div>
+            &gt; DISCLAIMER: Budget allocations are approximations based on publicly available federal spending data and may not reflect exact real-time figures. AI parsing may contain errors. Not financial or tax advice.{" "}
+            <Link href="/privacy" style={{ color: "#555", textDecoration: "underline" }}>[PRIVACY]</Link>{" "}
+            <Link href="/terms" style={{ color: "#555", textDecoration: "underline" }}>[TERMS]</Link>
+          </div>
+          <div style={{ color: "#333", marginTop: "0.25rem" }}>{'─'.repeat(60)}</div>
         </div>
       </div>
     </main>

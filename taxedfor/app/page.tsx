@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
+import Link from "next/link";
 import ResultsView from "./components/ResultsView";
 
 export interface W2Data {
@@ -489,6 +490,30 @@ export default function Home() {
       {/* Footer */}
       <div style={{ color: "#333", fontSize: "0.7rem", marginTop: "2.5rem", textAlign: "center", maxWidth: "400px", ...mono }}>
         &gt; w2 data processed locally or via claude ai — never stored
+      </div>
+
+      {/* Legal disclaimer footer */}
+      <div
+        style={{
+          marginTop: "2rem",
+          width: "100%",
+          maxWidth: "600px",
+          borderTop: "1px solid #222",
+          borderBottom: "1px solid #222",
+          padding: "0.75rem 1rem",
+          color: "#444",
+          fontSize: "0.7rem",
+          lineHeight: "1.6",
+          ...mono,
+        }}
+      >
+        <div style={{ color: "#333", marginBottom: "0.25rem" }}>{'─'.repeat(60)}</div>
+        <div>
+          &gt; DISCLAIMER: Budget allocations are approximations based on publicly available federal spending data and may not reflect exact real-time figures. AI parsing may contain errors. Not financial or tax advice.{" "}
+          <Link href="/privacy" style={{ color: "#555", textDecoration: "underline" }}>[PRIVACY]</Link>{" "}
+          <Link href="/terms" style={{ color: "#555", textDecoration: "underline" }}>[TERMS]</Link>
+        </div>
+        <div style={{ color: "#333", marginTop: "0.25rem" }}>{'─'.repeat(60)}</div>
       </div>
     </main>
   );
