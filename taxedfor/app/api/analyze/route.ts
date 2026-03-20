@@ -31,10 +31,17 @@ async function imageToBase64(buffer: Buffer, mimeType: string): Promise<{ base64
 
 async function pdfToImage(buffer: Buffer): Promise<{ base64: string; mediaType: "image/jpeg" }> {
   // Try pdf2pic if available (optional dependency — install with: npm install pdf2pic)
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-explicit-any
+  let pdf2pic: any;
   try {
-    // dynamic require to avoid build-time module resolution errors
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-explicit-any
-    const pdf2pic: any = require("pdf2pic");
+    pdf2pic = require("pdf2pic");
+    console.log("pdf2pic loaded successfully:", Object.keys(pdf2pic));
+  } catch (err) {
+    console.error("pdf2pic require failed:", err);
+    throw new Error("PDF processing requires pdf2pic. Please install it with: npm install pdf2pic");
+  }
+
+  try {
     const { fromBuffer } = pdf2pic;
     const converter = fromBuffer(buffer, {
       density: 150,
@@ -46,15 +53,12 @@ async function pdfToImage(buffer: Buffer): Promise<{ base64: string; mediaType: 
     if (result && result.base64) {
       return { base64: result.base64, mediaType: "image/jpeg" };
     }
-  } catch {
-    // pdf2pic not available or failed
+    throw new Error("pdf2pic conversion returned no result");
+  } catch (err) {
+    console.error("pdf2pic conversion error:", err);
+    throw err;
   }
 
-  // Fallback: try sharp with a raw approach (won't work for PDF but let's be safe)
-  // If we reach here, we'll throw and let the caller handle it
-  throw new Error(
-    "PDF processing requires pdf2pic. Please install it with: npm install pdf2pic"
-  );
 }
 
 export async function POST(req: NextRequest) {
@@ -90,7 +94,7 @@ export async function POST(req: NextRequest) {
     }
 
     const response = await client.messages.create({
-      model: "claude-3-5-sonnet-20241022",
+      model: "claude-sonnet-4-20250514",
       max_tokens: 512,
       system: SYSTEM_PROMPT,
       messages: [
