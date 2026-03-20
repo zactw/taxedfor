@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { W2Data } from "../page";
 import ShareCard from "./ShareCard";
 import StateTaxBreakdown from "./StateTaxBreakdown";
@@ -16,350 +16,74 @@ interface Props {
 type BudgetCategory = "Mandatory" | "Defense" | "Non-Defense" | "Debt";
 
 interface BudgetItem {
-  emoji: string;
   name: string;
   description: string;
-  /** Percentage of total federal outlays (~$6.75T FY2024) */
   percent: number;
   category: BudgetCategory;
 }
 
 const BUDGET_ITEMS: BudgetItem[] = [
-  // ── Mandatory ──────────────────────────────────────────────────────────────
-  {
-    emoji: "👴",
-    name: "Social Security (OASDI)",
-    description: "Monthly retirement, survivor, and disability payments to ~70 million Americans.",
-    percent: 20.0,
-    category: "Mandatory",
-  },
-  {
-    emoji: "🏥",
-    name: "Medicare",
-    description: "Federal health insurance for Americans 65+ and certain disabled individuals.",
-    percent: 14.8,
-    category: "Mandatory",
-  },
-  {
-    emoji: "💊",
-    name: "Medicaid & CHIP",
-    description: "Health coverage for low-income adults, children, pregnant women, and people with disabilities.",
-    percent: 9.1,
-    category: "Mandatory",
-  },
-  {
-    emoji: "🍎",
-    name: "SNAP (Food Stamps)",
-    description: "Nutrition assistance for ~42 million low-income Americans each month.",
-    percent: 1.7,
-    category: "Mandatory",
-  },
-  {
-    emoji: "🏛️",
-    name: "Federal Civilian Retirement",
-    description: "Pension and disability payments for retired federal government employees.",
-    percent: 2.3,
-    category: "Mandatory",
-  },
-  {
-    emoji: "🎖️",
-    name: "Veterans Compensation & Pensions",
-    description: "Disability compensation and pension payments to eligible military veterans.",
-    percent: 2.1,
-    category: "Mandatory",
-  },
-  {
-    emoji: "🩺",
-    name: "ACA Health Insurance Subsidies",
-    description: "Premium tax credits helping individuals buy coverage on ACA marketplace exchanges.",
-    percent: 1.3,
-    category: "Mandatory",
-  },
-  {
-    emoji: "💰",
-    name: "Earned Income Tax Credit",
-    description: "Refundable tax credit for low- and moderate-income working families.",
-    percent: 1.0,
-    category: "Mandatory",
-  },
-  {
-    emoji: "♿",
-    name: "Supplemental Security Income (SSI)",
-    description: "Cash assistance to aged, blind, and disabled people with limited income.",
-    percent: 0.9,
-    category: "Mandatory",
-  },
-  {
-    emoji: "👶",
-    name: "Child Tax Credit (Refundable)",
-    description: "Refundable portion of the Child Tax Credit for qualifying families.",
-    percent: 0.5,
-    category: "Mandatory",
-  },
-  {
-    emoji: "📖",
-    name: "Student Loan Subsidies",
-    description: "Interest subsidies and income-driven repayment forgiveness for federal student loans.",
-    percent: 0.4,
-    category: "Mandatory",
-  },
-  {
-    emoji: "📉",
-    name: "Unemployment Insurance",
-    description: "Temporary income support for workers who lose their jobs through no fault of their own.",
-    percent: 0.4,
-    category: "Mandatory",
-  },
-  {
-    emoji: "👨‍👩‍👧",
-    name: "TANF & Family Support",
-    description: "Block grants to states for cash assistance and services for low-income families.",
-    percent: 0.3,
-    category: "Mandatory",
-  },
-  {
-    emoji: "📦",
-    name: "Other Mandatory Spending",
-    description: "Flood insurance, deposit insurance, Pension Benefit Guaranty, and other entitlement programs.",
-    percent: 4.4,
-    category: "Mandatory",
-  },
-
-  // ── Defense ────────────────────────────────────────────────────────────────
-  {
-    emoji: "✈️",
-    name: "Air Force & Space Force",
-    description: "Personnel, aircraft, satellites, cyber operations, and ICBM forces.",
-    percent: 3.2,
-    category: "Defense",
-  },
-  {
-    emoji: "⚓",
-    name: "Navy & Marine Corps",
-    description: "Aircraft carriers, submarines, destroyers, amphibious forces, and naval aviation.",
-    percent: 3.1,
-    category: "Defense",
-  },
-  {
-    emoji: "🪖",
-    name: "Army Operations & Personnel",
-    description: "Ground forces, combat units, training, and Army installation operations.",
-    percent: 2.7,
-    category: "Defense",
-  },
-  {
-    emoji: "🔬",
-    name: "Defense Research & Development",
-    description: "Advanced weapons R&D, DARPA projects, next-generation military technology.",
-    percent: 1.8,
-    category: "Defense",
-  },
-  {
-    emoji: "🕵️",
-    name: "Defense-Wide Agencies (NSA, DIA, etc.)",
-    description: "Intelligence agencies, logistics commands, and joint Pentagon-wide programs.",
-    percent: 1.8,
-    category: "Defense",
-  },
-  {
-    emoji: "☢️",
-    name: "Nuclear Weapons (NNSA)",
-    description: "Design, production, and maintenance of the U.S. nuclear stockpile.",
-    percent: 0.3,
-    category: "Defense",
-  },
-  {
-    emoji: "🏗️",
-    name: "Military Construction",
-    description: "Building and modernizing bases, barracks, and facilities worldwide.",
-    percent: 0.2,
-    category: "Defense",
-  },
-
-  // ── Non-Defense Discretionary ──────────────────────────────────────────────
-  {
-    emoji: "🏥",
-    name: "VA Healthcare",
-    description: "Medical care, mental health, and rehabilitation for 9+ million enrolled veterans.",
-    percent: 1.7,
-    category: "Non-Defense",
-  },
-  {
-    emoji: "🛣️",
-    name: "Transportation (Highways, FAA, Amtrak)",
-    description: "Federal Highway Administration, airports, air traffic control, and passenger rail.",
-    percent: 1.6,
-    category: "Non-Defense",
-  },
-  {
-    emoji: "📚",
-    name: "Education (K-12 & Pell Grants)",
-    description: "Title I funding for low-income schools, Pell grants, and special education.",
-    percent: 1.2,
-    category: "Non-Defense",
-  },
-  {
-    emoji: "🏠",
-    name: "Housing Assistance (HUD)",
-    description: "Section 8 vouchers, public housing, and community development grants.",
-    percent: 1.1,
-    category: "Non-Defense",
-  },
-  {
-    emoji: "🔭",
-    name: "NIH (Medical Research)",
-    description: "National Institutes of Health funding for cancer, Alzheimer's, and disease research.",
-    percent: 0.7,
-    category: "Non-Defense",
-  },
-  {
-    emoji: "🚀",
-    name: "NASA",
-    description: "Space exploration, Artemis moon program, ISS, and Earth science missions.",
-    percent: 0.4,
-    category: "Non-Defense",
-  },
-  {
-    emoji: "🛂",
-    name: "Border Patrol & ICE",
-    description: "Customs and Border Protection, Immigration and Customs Enforcement operations.",
-    percent: 0.4,
-    category: "Non-Defense",
-  },
-  {
-    emoji: "🌍",
-    name: "Foreign Aid (USAID)",
-    description: "Development assistance, humanitarian aid, and global health programs abroad.",
-    percent: 0.4,
-    category: "Non-Defense",
-  },
-  {
-    emoji: "🔴",
-    name: "Other Non-Defense Discretionary",
-    description: "Courts, Congress, White House, and hundreds of smaller federal programs.",
-    percent: 2.7,
-    category: "Non-Defense",
-  },
-  {
-    emoji: "🌾",
-    name: "Agriculture & Farm Subsidies",
-    description: "Crop insurance, conservation programs, rural development, and farm price supports.",
-    percent: 0.3,
-    category: "Non-Defense",
-  },
-  {
-    emoji: "⚡",
-    name: "Energy Dept (Non-Nuclear)",
-    description: "Clean energy R&D, grid modernization, and energy efficiency programs.",
-    percent: 0.3,
-    category: "Non-Defense",
-  },
-  {
-    emoji: "🆘",
-    name: "FEMA & Disaster Relief",
-    description: "Federal Emergency Management Agency response, recovery, and mitigation grants.",
-    percent: 0.3,
-    category: "Non-Defense",
-  },
-  {
-    emoji: "🗺️",
-    name: "State Dept & Embassies",
-    description: "U.S. diplomatic missions, consular services, and international organizations.",
-    percent: 0.2,
-    category: "Non-Defense",
-  },
-  {
-    emoji: "💼",
-    name: "IRS & Treasury Administration",
-    description: "Tax collection, financial crimes enforcement, and fiscal operations.",
-    percent: 0.2,
-    category: "Non-Defense",
-  },
-  {
-    emoji: "👨‍👧",
-    name: "Head Start & Early Childhood",
-    description: "Preschool and family services for low-income children under age 5.",
-    percent: 0.2,
-    category: "Non-Defense",
-  },
-  {
-    emoji: "🔫",
-    name: "FBI & Federal Law Enforcement",
-    description: "FBI, DEA, ATF, U.S. Marshals, and other federal law enforcement agencies.",
-    percent: 0.2,
-    category: "Non-Defense",
-  },
-  {
-    emoji: "🌿",
-    name: "EPA (Environment)",
-    description: "Clean Air Act enforcement, Superfund cleanup, and water quality programs.",
-    percent: 0.1,
-    category: "Non-Defense",
-  },
-  {
-    emoji: "🔬",
-    name: "CDC (Disease Control)",
-    description: "Public health surveillance, vaccine programs, and disease prevention.",
-    percent: 0.1,
-    category: "Non-Defense",
-  },
-  {
-    emoji: "⛓️",
-    name: "Federal Prisons (BOP)",
-    description: "Bureau of Prisons operating ~120 federal facilities housing ~160,000 inmates.",
-    percent: 0.1,
-    category: "Non-Defense",
-  },
-  {
-    emoji: "🏢",
-    name: "SBA & Small Business",
-    description: "Small Business Administration loans, grants, and entrepreneurship programs.",
-    percent: 0.01,
-    category: "Non-Defense",
-  },
-
-  // ── Debt ───────────────────────────────────────────────────────────────────
-  {
-    emoji: "💳",
-    name: "Interest on National Debt",
-    description: "Net interest payments on $34+ trillion in outstanding federal debt — the fastest growing major expense.",
-    percent: 13.2,
-    category: "Debt",
-  },
+  { name: "Social Security (OASDI)", description: "Monthly retirement, survivor, and disability payments to ~70 million Americans.", percent: 20.0, category: "Mandatory" },
+  { name: "Medicare", description: "Federal health insurance for Americans 65+ and certain disabled individuals.", percent: 14.8, category: "Mandatory" },
+  { name: "Medicaid & CHIP", description: "Health coverage for low-income adults, children, pregnant women, and people with disabilities.", percent: 9.1, category: "Mandatory" },
+  { name: "SNAP (Food Stamps)", description: "Nutrition assistance for ~42 million low-income Americans each month.", percent: 1.7, category: "Mandatory" },
+  { name: "Federal Civilian Retirement", description: "Pension and disability payments for retired federal government employees.", percent: 2.3, category: "Mandatory" },
+  { name: "Veterans Comp & Pensions", description: "Disability compensation and pension payments to eligible military veterans.", percent: 2.1, category: "Mandatory" },
+  { name: "ACA Health Subsidies", description: "Premium tax credits helping individuals buy coverage on ACA marketplace exchanges.", percent: 1.3, category: "Mandatory" },
+  { name: "Earned Income Tax Credit", description: "Refundable tax credit for low- and moderate-income working families.", percent: 1.0, category: "Mandatory" },
+  { name: "Supplemental Security Inc.", description: "Cash assistance to aged, blind, and disabled people with limited income.", percent: 0.9, category: "Mandatory" },
+  { name: "Child Tax Credit", description: "Refundable portion of the Child Tax Credit for qualifying families.", percent: 0.5, category: "Mandatory" },
+  { name: "Student Loan Subsidies", description: "Interest subsidies and income-driven repayment forgiveness for federal student loans.", percent: 0.4, category: "Mandatory" },
+  { name: "Unemployment Insurance", description: "Temporary income support for workers who lose their jobs through no fault of their own.", percent: 0.4, category: "Mandatory" },
+  { name: "TANF & Family Support", description: "Block grants to states for cash assistance and services for low-income families.", percent: 0.3, category: "Mandatory" },
+  { name: "Other Mandatory Spending", description: "Flood insurance, deposit insurance, Pension Benefit Guaranty, and other entitlement programs.", percent: 4.4, category: "Mandatory" },
+  { name: "Air Force & Space Force", description: "Personnel, aircraft, satellites, cyber operations, and ICBM forces.", percent: 3.2, category: "Defense" },
+  { name: "Navy & Marine Corps", description: "Aircraft carriers, submarines, destroyers, amphibious forces, and naval aviation.", percent: 3.1, category: "Defense" },
+  { name: "Army Operations", description: "Ground forces, combat units, training, and Army installation operations.", percent: 2.7, category: "Defense" },
+  { name: "Defense R&D", description: "Advanced weapons R&D, DARPA projects, next-generation military technology.", percent: 1.8, category: "Defense" },
+  { name: "Defense Agencies (NSA, DIA)", description: "Intelligence agencies, logistics commands, and joint Pentagon-wide programs.", percent: 1.8, category: "Defense" },
+  { name: "Nuclear Weapons (NNSA)", description: "Design, production, and maintenance of the U.S. nuclear stockpile.", percent: 0.3, category: "Defense" },
+  { name: "Military Construction", description: "Building and modernizing bases, barracks, and facilities worldwide.", percent: 0.2, category: "Defense" },
+  { name: "VA Healthcare", description: "Medical care, mental health, and rehabilitation for 9+ million enrolled veterans.", percent: 1.7, category: "Non-Defense" },
+  { name: "Transportation (FAA, Amtrak)", description: "Federal Highway Administration, airports, air traffic control, and passenger rail.", percent: 1.6, category: "Non-Defense" },
+  { name: "Education (K-12 & Pell)", description: "Title I funding for low-income schools, Pell grants, and special education.", percent: 1.2, category: "Non-Defense" },
+  { name: "Housing Assistance (HUD)", description: "Section 8 vouchers, public housing, and community development grants.", percent: 1.1, category: "Non-Defense" },
+  { name: "NIH (Medical Research)", description: "National Institutes of Health funding for cancer, Alzheimer's, and disease research.", percent: 0.7, category: "Non-Defense" },
+  { name: "NASA", description: "Space exploration, Artemis moon program, ISS, and Earth science missions.", percent: 0.4, category: "Non-Defense" },
+  { name: "Border Patrol & ICE", description: "Customs and Border Protection, Immigration and Customs Enforcement operations.", percent: 0.4, category: "Non-Defense" },
+  { name: "Foreign Aid (USAID)", description: "Development assistance, humanitarian aid, and global health programs abroad.", percent: 0.4, category: "Non-Defense" },
+  { name: "Agriculture & Farm Subsidies", description: "Crop insurance, conservation programs, rural development, and farm price supports.", percent: 0.3, category: "Non-Defense" },
+  { name: "Energy Dept (Non-Nuclear)", description: "Clean energy R&D, grid modernization, and energy efficiency programs.", percent: 0.3, category: "Non-Defense" },
+  { name: "FEMA & Disaster Relief", description: "Federal Emergency Management Agency response, recovery, and mitigation grants.", percent: 0.3, category: "Non-Defense" },
+  { name: "State Dept & Embassies", description: "U.S. diplomatic missions, consular services, and international organizations.", percent: 0.2, category: "Non-Defense" },
+  { name: "IRS & Treasury Admin", description: "Tax collection, financial crimes enforcement, and fiscal operations.", percent: 0.2, category: "Non-Defense" },
+  { name: "Head Start & Early Childhood", description: "Preschool and family services for low-income children under age 5.", percent: 0.2, category: "Non-Defense" },
+  { name: "FBI & Federal Law Enforcement", description: "FBI, DEA, ATF, U.S. Marshals, and other federal law enforcement agencies.", percent: 0.2, category: "Non-Defense" },
+  { name: "EPA (Environment)", description: "Clean Air Act enforcement, Superfund cleanup, and water quality programs.", percent: 0.1, category: "Non-Defense" },
+  { name: "CDC (Disease Control)", description: "Public health surveillance, vaccine programs, and disease prevention.", percent: 0.1, category: "Non-Defense" },
+  { name: "Federal Prisons (BOP)", description: "Bureau of Prisons operating ~120 federal facilities housing ~160,000 inmates.", percent: 0.1, category: "Non-Defense" },
+  { name: "SBA & Small Business", description: "Small Business Administration loans, grants, and entrepreneurship programs.", percent: 0.01, category: "Non-Defense" },
+  { name: "Other Non-Defense Discr.", description: "Courts, Congress, White House, and hundreds of smaller federal programs.", percent: 2.7, category: "Non-Defense" },
+  { name: "Interest on National Debt", description: "Net interest payments on $34+ trillion in outstanding federal debt — the fastest growing major expense.", percent: 13.2, category: "Debt" },
 ];
 
 // ─── Category config ──────────────────────────────────────────────────────────
 
-const CATEGORY_CONFIG: Record<
-  BudgetCategory,
-  { label: string; emoji: string; color: string; barColor: string; description: string }
-> = {
+const CATEGORY_CONFIG: Record<BudgetCategory, { label: string; description: string }> = {
   Mandatory: {
-    label: "Mandatory Spending",
-    emoji: "📋",
-    color: "border-blue-700/50 bg-blue-950/20",
-    barColor: "bg-blue-500",
+    label: "MANDATORY SPENDING",
     description: "Legally required by existing law — Congress must change the law to reduce these.",
   },
   Defense: {
-    label: "Defense Discretionary",
-    emoji: "🛡️",
-    color: "border-green-700/50 bg-green-950/20",
-    barColor: "bg-green-500",
+    label: "DEFENSE DISCRETIONARY",
     description: "Military spending set annually by Congress via the appropriations process.",
   },
   "Non-Defense": {
-    label: "Non-Defense Discretionary",
-    emoji: "🏗️",
-    color: "border-purple-700/50 bg-purple-950/20",
-    barColor: "bg-purple-500",
+    label: "NON-DEFENSE DISCRETIONARY",
     description: "Civilian agency budgets set annually — from NASA to education to the FBI.",
   },
   Debt: {
-    label: "Interest on the Debt",
-    emoji: "💳",
-    color: "border-red-700/50 bg-red-950/20",
-    barColor: "bg-red-500",
+    label: "INTEREST ON THE DEBT",
     description: "Mandatory interest payments on $34+ trillion in accumulated federal debt.",
   },
 };
@@ -376,7 +100,7 @@ function formatDollars(n: number): string {
 }
 
 function formatDollarsCompact(n: number): string {
-  if (n < 1) return `${(n * 100).toFixed(1)}¢`;
+  if (n < 1) return `${(n * 100).toFixed(1)}c`;
   if (n < 100) return `$${n.toFixed(2)}`;
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -386,37 +110,87 @@ function formatDollarsCompact(n: number): string {
   }).format(n);
 }
 
-// ─── MiniBar ──────────────────────────────────────────────────────────────────
+/** Build a 28-char block progress bar: █ for filled, ░ for empty */
+function blockBar(filled: number, total: number = 28): string {
+  const f = Math.round((filled / total) * total);
+  return "█".repeat(f) + "░".repeat(total - f);
+}
 
-function MiniBar({
+// ─── Count-up hook ────────────────────────────────────────────────────────────
+
+function useCountUp(target: number, duration = 1500, delay = 0): number {
+  const [value, setValue] = useState(0);
+  const startTime = useRef<number | null>(null);
+  const rafId = useRef<number | null>(null);
+
+  useEffect(() => {
+    let timeout: ReturnType<typeof setTimeout>;
+    timeout = setTimeout(() => {
+      const animate = (ts: number) => {
+        if (startTime.current === null) startTime.current = ts;
+        const elapsed = ts - startTime.current;
+        const progress = Math.min(elapsed / duration, 1);
+        // ease out quart
+        const eased = 1 - Math.pow(1 - progress, 4);
+        setValue(target * eased);
+        if (progress < 1) {
+          rafId.current = requestAnimationFrame(animate);
+        } else {
+          setValue(target);
+        }
+      };
+      rafId.current = requestAnimationFrame(animate);
+    }, delay);
+
+    return () => {
+      clearTimeout(timeout);
+      if (rafId.current) cancelAnimationFrame(rafId.current);
+      startTime.current = null;
+    };
+  }, [target, duration, delay]);
+
+  return value;
+}
+
+// ─── AnimatedDollar ───────────────────────────────────────────────────────────
+
+function AnimatedDollar({ value, delay = 0 }: { value: number; delay?: number }) {
+  const animated = useCountUp(value, 1500, delay);
+  return <span>{formatDollars(animated)}</span>;
+}
+
+// ─── BlockProgressBar ─────────────────────────────────────────────────────────
+
+function BlockProgressBar({
   percent,
   maxPercent,
-  color,
-  animate,
-  delay,
+  delay = 0,
 }: {
   percent: number;
   maxPercent: number;
-  color: string;
-  animate: boolean;
-  delay: number;
+  delay?: number;
 }) {
-  const [width, setWidth] = useState(0);
-  const target = maxPercent > 0 ? (percent / maxPercent) * 100 : 0;
+  const BAR_WIDTH = 28;
+  const [filled, setFilled] = useState(0);
+  const targetFilled = maxPercent > 0 ? Math.round((percent / maxPercent) * BAR_WIDTH) : 0;
 
   useEffect(() => {
-    if (!animate) { setWidth(0); return; }
-    const t = setTimeout(() => setWidth(target), delay);
+    const t = setTimeout(() => {
+      let current = 0;
+      const step = () => {
+        current++;
+        setFilled(current);
+        if (current < targetFilled) requestAnimationFrame(step);
+      };
+      if (targetFilled > 0) requestAnimationFrame(step);
+    }, delay);
     return () => clearTimeout(t);
-  }, [animate, target, delay]);
+  }, [targetFilled, delay]);
 
   return (
-    <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden mt-2">
-      <div
-        className={`h-full ${color} rounded-full transition-all duration-500 ease-out`}
-        style={{ width: `${width}%` }}
-      />
-    </div>
+    <span style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0" }}>
+      {"█".repeat(filled)}{"░".repeat(BAR_WIDTH - filled)}
+    </span>
   );
 }
 
@@ -426,37 +200,38 @@ function LineItem({
   item,
   federal,
   maxPercent,
-  animate,
   delay,
 }: {
   item: BudgetItem;
   federal: number;
   maxPercent: number;
-  animate: boolean;
   delay: number;
 }) {
   const amount = (federal * item.percent) / 100;
-  const cfg = CATEGORY_CONFIG[item.category];
 
   return (
-    <div className="flex items-start gap-3 py-3 px-3 rounded-lg hover:bg-gray-800/40 transition-colors">
-      <span className="text-xl flex-shrink-0 mt-0.5">{item.emoji}</span>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-baseline justify-between gap-2">
-          <p className="text-sm font-medium text-gray-200 leading-tight">{item.name}</p>
-          <span className={`text-sm font-bold flex-shrink-0 ${cfg.barColor.replace("bg-", "text-")}`}>
-            {formatDollarsCompact(amount)}
-          </span>
-        </div>
-        <p className="text-xs text-gray-500 mt-0.5 leading-snug">{item.description}</p>
-        <MiniBar
-          percent={item.percent}
-          maxPercent={maxPercent}
-          color={cfg.barColor}
-          animate={animate}
-          delay={delay}
-        />
-        <p className="text-xs text-gray-600 mt-1">{item.percent.toFixed(2)}% of federal budget</p>
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "minmax(0,1fr) auto auto auto",
+        gap: "0.5rem 0.75rem",
+        alignItems: "center",
+        padding: "0.35rem 0",
+        borderBottom: "1px solid #1a1a1a",
+        fontSize: "0.75rem",
+      }}
+    >
+      <div style={{ color: "#ccc", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        {item.name}
+      </div>
+      <div style={{ color: "#888", fontSize: "0.7rem", whiteSpace: "nowrap" }}>
+        <BlockProgressBar percent={item.percent} maxPercent={maxPercent} delay={delay} />
+      </div>
+      <div style={{ color: "#aaa", textAlign: "right", whiteSpace: "nowrap" }}>
+        {item.percent.toFixed(1)}%
+      </div>
+      <div style={{ color: "#fff", fontWeight: 700, textAlign: "right", whiteSpace: "nowrap" }}>
+        {formatDollarsCompact(amount)}
       </div>
     </div>
   );
@@ -470,61 +245,82 @@ function CategorySection({
   federal,
   defaultOpen,
   searchQuery,
+  sectionDelay,
 }: {
   category: BudgetCategory;
   items: BudgetItem[];
   federal: number;
   defaultOpen: boolean;
   searchQuery: string;
+  sectionDelay: number;
 }) {
   const [open, setOpen] = useState(defaultOpen);
   const cfg = CATEGORY_CONFIG[category];
 
   const totalPercent = items.reduce((s, i) => s + i.percent, 0);
   const totalAmount = (federal * totalPercent) / 100;
-  const maxPercent = Math.max(...items.map((i) => i.percent));
+  const maxPercent = Math.max(...items.map((i) => i.percent), 0.01);
 
-  // When searching, auto-expand
   useEffect(() => {
     if (searchQuery) setOpen(true);
     else setOpen(defaultOpen);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery]);
 
-  const colorClass = cfg.barColor.replace("bg-", "text-");
-
   return (
-    <div className={`border rounded-xl overflow-hidden ${cfg.color}`}>
-      {/* Header */}
+    <div
+      className="section-fade"
+      style={{
+        "--section-delay": `${sectionDelay}ms`,
+        border: "1px solid #333",
+        marginBottom: "0.75rem",
+        fontFamily: "'JetBrains Mono', 'Courier New', monospace",
+      } as React.CSSProperties}
+    >
+      {/* Category header */}
       <button
         onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center gap-3 px-4 py-4 text-left hover:bg-white/5 transition-colors"
+        style={{
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "0.7rem 1rem",
+          background: "#000",
+          border: "none",
+          color: "#fff",
+          cursor: "pointer",
+          fontFamily: "'JetBrains Mono', 'Courier New', monospace",
+          fontSize: "0.8rem",
+          textAlign: "left",
+          borderBottom: open ? "1px solid #333" : "none",
+        }}
         aria-expanded={open}
       >
-        <span className="text-2xl">{cfg.emoji}</span>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <p className="text-white font-bold text-base">{cfg.label}</p>
-            <span className="text-xs text-gray-500 bg-gray-800 px-2 py-0.5 rounded-full">
-              {items.length} programs
-            </span>
-          </div>
-          <p className="text-gray-500 text-xs mt-0.5 leading-snug">{cfg.description}</p>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <span style={{ color: "#555" }}>{open ? "[-]" : "[+]"}</span>
+          <span style={{ fontWeight: 700, letterSpacing: "0.08em" }}>{cfg.label}</span>
+          <span style={{ color: "#444", fontSize: "0.7rem" }}>({items.length} programs)</span>
         </div>
-        <div className="text-right flex-shrink-0 mr-2">
-          <p className={`font-bold text-lg ${colorClass}`}>{formatDollars(totalAmount)}</p>
-          <p className="text-gray-600 text-xs">{totalPercent.toFixed(1)}%</p>
+        <div style={{ textAlign: "right", fontWeight: 700 }}>
+          {formatDollars(totalAmount)}
         </div>
-        <span className={`text-gray-400 text-sm transition-transform duration-200 ${open ? "rotate-180" : ""}`}>
-          ▼
-        </span>
       </button>
 
-      {/* Line items */}
+      {/* Description */}
       {open && (
-        <div className="border-t border-white/5 px-2 pb-2 divide-y divide-gray-800/60">
+        <div style={{ padding: "0.4rem 1rem", borderBottom: "1px solid #1a1a1a", color: "#555", fontSize: "0.7rem" }}>
+          {cfg.description}
+        </div>
+      )}
+
+      {/* Items */}
+      {open && (
+        <div style={{ padding: "0 1rem 0.5rem" }}>
           {items.length === 0 ? (
-            <p className="text-gray-600 text-sm text-center py-4">No matching programs</p>
+            <div style={{ color: "#444", fontSize: "0.75rem", textAlign: "center", padding: "1rem 0" }}>
+              &gt; no matching programs
+            </div>
           ) : (
             items.map((item, i) => (
               <LineItem
@@ -532,8 +328,7 @@ function CategorySection({
                 item={item}
                 federal={federal}
                 maxPercent={maxPercent}
-                animate={open}
-                delay={i * 40}
+                delay={i * 40 + sectionDelay}
               />
             ))
           )}
@@ -580,40 +375,60 @@ export default function ResultsView({ data, onReset }: Props) {
     [filteredByCategory]
   );
 
+  const mono: React.CSSProperties = {
+    fontFamily: "'JetBrains Mono', 'Courier New', monospace",
+  };
+
   return (
-    <main className="min-h-screen bg-gray-950 px-4 py-12">
-      <div className="max-w-2xl mx-auto">
+    <main
+      style={{
+        minHeight: "100vh",
+        backgroundColor: "#000",
+        color: "#fff",
+        padding: "2rem 1rem",
+        ...mono,
+      }}
+    >
+      <div style={{ maxWidth: "680px", margin: "0 auto" }}>
 
-        {/* Header */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-1.5 mb-4">
-            <span className="text-emerald-400 text-sm font-medium">✅ W2 Analyzed</span>
+        {/* Analysis Complete Box */}
+        <div
+          className="section-fade"
+          style={{
+            "--section-delay": "0ms",
+            border: "1px solid #fff",
+            marginBottom: "2rem",
+            ...mono,
+          } as React.CSSProperties}
+        >
+          <div style={{ borderBottom: "1px solid #333", padding: "0.6rem 1rem", color: "#888", fontSize: "0.75rem" }}>
+            ┌─ ANALYSIS COMPLETE ─────────────────────────────────┐
           </div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">Your Tax Breakdown</h1>
-          <p className="text-gray-400">Here&apos;s exactly where your money went in 2024</p>
-        </div>
-
-        {/* Summary Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
-          {[
-            { label: "Federal Income Tax", value: federal, emoji: "🏛️", color: "text-emerald-400" },
-            { label: "Social Security", value: socialSecurity, emoji: "👴", color: "text-blue-400" },
-            { label: "Medicare", value: medicare, emoji: "🏥", color: "text-cyan-400" },
-            { label: `State Tax${state ? ` (${state})` : ""}`, value: stateTax, emoji: "🗺️", color: "text-purple-400" },
-          ].map((item) => (
-            <div key={item.label} className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
-              <div className="text-2xl mb-1">{item.emoji}</div>
-              <div className={`text-lg sm:text-xl font-bold ${item.color}`}>{formatDollars(item.value)}</div>
-              <div className="text-gray-500 text-xs mt-1 leading-tight">{item.label}</div>
+          <div style={{ padding: "1rem 1.25rem" }}>
+            <div style={{ fontSize: "0.8rem", color: "#666", marginBottom: "0.75rem", letterSpacing: "0.1em" }}>
+              ══════════════════════════════════════════
             </div>
-          ))}
-        </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "0.3rem 1rem", fontSize: "0.85rem" }}>
+              <span style={{ color: "#aaa" }}>Federal Withheld:</span>
+              <span style={{ color: "#fff", textAlign: "right" }}><AnimatedDollar value={federal} delay={100} /></span>
 
-        {/* Total */}
-        <div className="bg-gradient-to-r from-emerald-900/30 to-blue-900/30 border border-emerald-800/40 rounded-xl p-5 mb-10 text-center">
-          <p className="text-gray-400 text-sm mb-1">Total taxes withheld</p>
-          <p className="text-4xl font-bold text-white">{formatDollars(totalTaxes)}</p>
-          <p className="text-gray-500 text-xs mt-2">Federal + FICA + State</p>
+              <span style={{ color: "#aaa" }}>Social Security:</span>
+              <span style={{ color: "#fff", textAlign: "right" }}><AnimatedDollar value={socialSecurity} delay={200} /></span>
+
+              <span style={{ color: "#aaa" }}>Medicare:</span>
+              <span style={{ color: "#fff", textAlign: "right" }}><AnimatedDollar value={medicare} delay={300} /></span>
+
+              <span style={{ color: "#aaa" }}>State {state ? `(${state})` : "Tax"}:</span>
+              <span style={{ color: "#fff", textAlign: "right" }}><AnimatedDollar value={stateTax} delay={400} /></span>
+            </div>
+            <div style={{ borderTop: "1px solid #333", marginTop: "0.75rem", paddingTop: "0.75rem", display: "grid", gridTemplateColumns: "1fr auto", fontSize: "0.95rem", fontWeight: 700 }}>
+              <span>TOTAL EXTRACTED:</span>
+              <span style={{ textAlign: "right" }}><AnimatedDollar value={totalTaxes} delay={500} /></span>
+            </div>
+          </div>
+          <div style={{ borderTop: "1px solid #333", padding: "0.4rem 1rem", color: "#444", fontSize: "0.75rem" }}>
+            └─────────────────────────────────────────────────────┘
+          </div>
         </div>
 
         {/* Share Card */}
@@ -625,31 +440,35 @@ export default function ResultsView({ data, onReset }: Props) {
           state={state}
         />
 
-        {/* FICA section */}
-        <section className="mb-10">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="h-px flex-1 bg-gray-800" />
-            <h2 className="text-white font-bold text-lg whitespace-nowrap">💼 FICA Payroll Taxes</h2>
-            <div className="h-px flex-1 bg-gray-800" />
+        {/* FICA Section */}
+        <section
+          className="section-fade"
+          style={{
+            "--section-delay": "200ms",
+            border: "1px solid #333",
+            padding: "1rem 1.25rem",
+            marginBottom: "1.5rem",
+            ...mono,
+          } as React.CSSProperties}
+        >
+          <div style={{ fontSize: "0.8rem", fontWeight: 700, letterSpacing: "0.1em", marginBottom: "0.75rem", color: "#fff" }}>
+            [FICA PAYROLL TAXES] ───────────────────── <AnimatedDollar value={totalFica} delay={300} />
           </div>
-          <p className="text-gray-500 text-sm text-center mb-5">
-            Your <span className="text-blue-400 font-semibold">{formatDollars(totalFica)}</span> in FICA taxes funds social insurance programs
-          </p>
-          <div className="grid grid-cols-2 gap-3">
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem", fontSize: "0.8rem" }}>
             {[
-              { emoji: "👴", name: "Social Security", amount: socialSecurity, color: "text-blue-400", bar: "bg-blue-500", desc: "Retirement & disability insurance for workers and families" },
-              { emoji: "🏥", name: "Medicare", amount: medicare, color: "text-cyan-400", bar: "bg-cyan-500", desc: "Health insurance for Americans 65+ and disabled individuals" },
+              { name: "Social Security", amount: socialSecurity, delay: 350 },
+              { name: "Medicare", amount: medicare, delay: 450 },
             ].map((c) => (
-              <div key={c.name} className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-                <div className="text-2xl mb-2">{c.emoji}</div>
-                <p className={`text-xl font-bold ${c.color}`}>{formatDollars(c.amount)}</p>
-                <p className="text-white font-semibold text-sm mt-1">{c.name}</p>
-                <p className="text-gray-500 text-xs mt-1 leading-snug">{c.desc}</p>
-                <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden mt-3">
-                  <div
-                    className={`h-full ${c.bar} rounded-full`}
-                    style={{ width: `${(c.amount / totalFica) * 100}%` }}
-                  />
+              <div key={c.name} style={{ border: "1px solid #222", padding: "0.75rem" }}>
+                <div style={{ fontWeight: 700, marginBottom: "0.25rem" }}>{c.name}</div>
+                <div style={{ color: "#fff", fontSize: "1rem", fontWeight: 700 }}>
+                  <AnimatedDollar value={c.amount} delay={c.delay} />
+                </div>
+                <div style={{ color: "#444", fontSize: "0.7rem", marginTop: "0.25rem" }}>
+                  {((c.amount / totalFica) * 100).toFixed(1)}% of FICA
+                </div>
+                <div style={{ marginTop: "0.5rem", fontSize: "0.65rem", color: "#555" }}>
+                  <BlockProgressBar percent={c.amount} maxPercent={totalFica} delay={c.delay} />
                 </div>
               </div>
             ))}
@@ -657,45 +476,58 @@ export default function ResultsView({ data, onReset }: Props) {
         </section>
 
         {/* Federal Budget Breakdown */}
-        <section className="mb-10">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="h-px flex-1 bg-gray-800" />
-            <h2 className="text-white font-bold text-lg whitespace-nowrap">🏛️ Federal Budget Allocation</h2>
-            <div className="h-px flex-1 bg-gray-800" />
+        <section style={{ marginBottom: "1.5rem" }}>
+          <div
+            className="section-fade"
+            style={{
+              "--section-delay": "300ms",
+              fontSize: "0.8rem",
+              fontWeight: 700,
+              letterSpacing: "0.1em",
+              marginBottom: "1rem",
+              padding: "0.5rem 0",
+              borderTop: "1px solid #333",
+              borderBottom: "1px solid #333",
+              ...mono,
+            } as React.CSSProperties}
+          >
+            [FEDERAL BUDGET ALLOCATION] — {BUDGET_ITEMS.length} programs — {formatDollars(federal)}
           </div>
-          <p className="text-gray-500 text-sm text-center mb-5">
-            Your <span className="text-emerald-400 font-semibold">{formatDollars(federal)}</span> in federal withholding — broken down across {BUDGET_ITEMS.length} programs by FY2024 budget percentages
-          </p>
 
           {/* Search */}
-          <div className="relative mb-4">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">🔍</span>
+          <div style={{ marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.5rem", ...mono }}>
+            <span style={{ color: "#888" }}>&gt; SEARCH PROGRAMS:</span>
             <input
               type="text"
-              placeholder="Search programs (e.g. NASA, SNAP, FBI…)"
+              placeholder="e.g. NASA, SNAP, FBI..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-gray-900 border border-gray-700 rounded-xl pl-9 pr-10 py-3 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-emerald-600 transition-colors"
+              className="input-terminal"
+              style={{
+                flex: 1,
+                padding: "0.35rem 0.6rem",
+                fontSize: "0.8rem",
+              }}
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 text-lg leading-none"
-                aria-label="Clear search"
+                className="btn-terminal"
+                style={{ padding: "0.3rem 0.6rem", fontSize: "0.75rem", borderColor: "#555", color: "#888" }}
               >
-                ×
+                [X]
               </button>
             )}
           </div>
           {searchQuery && (
-            <p className="text-gray-600 text-xs text-center mb-3">
-              {totalMatches} program{totalMatches !== 1 ? "s" : ""} match &ldquo;{searchQuery}&rdquo;
-            </p>
+            <div style={{ color: "#555", fontSize: "0.7rem", marginBottom: "0.5rem" }}>
+              &gt; {totalMatches} result{totalMatches !== 1 ? "s" : ""} for &quot;{searchQuery}&quot;
+            </div>
           )}
 
           {/* Categories */}
-          <div className="space-y-3">
-            {categories.map((cat) => (
+          <div>
+            {categories.map((cat, idx) => (
               <CategorySection
                 key={cat}
                 category={cat}
@@ -703,32 +535,41 @@ export default function ResultsView({ data, onReset }: Props) {
                 federal={federal}
                 defaultOpen={cat === "Debt"}
                 searchQuery={searchQuery}
+                sectionDelay={idx * 100 + 400}
               />
             ))}
           </div>
         </section>
 
-        {/* State Tax Breakdown (Pro) */}
+        {/* State Tax Breakdown */}
         <StateTaxBreakdown stateTax={stateTax} stateCode={state} />
 
         {/* Footnote */}
-        <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-5 mb-8 text-center">
-          <p className="text-gray-400 text-sm">
-            <span className="text-yellow-400">💡</span> Percentages based on approximate FY2024 federal outlays (~$6.75T total).
-            Your employer also matches your <strong className="text-white">{formatDollars(totalFica)}</strong> in FICA taxes.
-          </p>
+        <div
+          style={{
+            border: "1px solid #222",
+            padding: "0.75rem 1rem",
+            marginBottom: "1.5rem",
+            color: "#555",
+            fontSize: "0.72rem",
+            ...mono,
+          }}
+        >
+          &gt; Percentages based on approximate FY2024 federal outlays (~$6.75T total).
+          Your employer also matches your {formatDollars(totalFica)} in FICA taxes.
         </div>
 
         {/* Pro Upgrade */}
         <ProUpgrade />
 
         {/* Reset */}
-        <div className="text-center">
+        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
           <button
             onClick={onReset}
-            className="bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium py-3 px-8 rounded-xl transition-colors duration-150"
+            className="btn-terminal"
+            style={{ padding: "0.6rem 2rem", fontSize: "0.85rem", letterSpacing: "0.05em" }}
           >
-            ← Analyze Another W2
+            [ &larr; ANALYZE ANOTHER W-2 ]
           </button>
         </div>
       </div>

@@ -1,34 +1,135 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
 
 @theme inline {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: 'JetBrains Mono', 'Courier New', monospace;
+  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
 }
 
 * {
   box-sizing: border-box;
 }
 
-body {
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+html, body {
+  background-color: #000000;
+  color: #ffffff;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
 }
 
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+/* Scanline overlay */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
 }
 
-.shimmer {
-  background: linear-gradient(90deg, #1f2937 25%, #374151 50%, #1f2937 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
+/* Typewriter animation */
+@keyframes typewriter {
+  from { width: 0; }
+  to { width: 100%; }
 }
 
-@keyframes bar-grow {
-  from { width: 0%; }
-  to { width: var(--bar-width); }
+@keyframes blink-cursor {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.typewriter {
+  overflow: hidden;
+  white-space: nowrap;
+  animation: typewriter 1.2s steps(40, end) forwards;
+}
+
+.blink {
+  animation: blink-cursor 1s step-end infinite;
+}
+
+/* Header flicker */
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  92% { opacity: 1; }
+  93% { opacity: 0.6; }
+  94% { opacity: 1; }
+  96% { opacity: 0.8; }
+  97% { opacity: 1; }
+}
+
+.flicker {
+  animation: flicker 4s ease-in-out;
+}
+
+/* Progress bar fill animation */
+@keyframes bar-fill {
+  from { width: 0; }
+  to { width: var(--bar-target); }
 }
 
 .bar-animate {
-  animation: bar-grow 0.8s ease-out forwards;
+  animation: bar-fill 1.5s ease-out forwards;
+  animation-delay: var(--bar-delay, 0ms);
+  width: 0;
+}
+
+/* Staggered section fade in */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.section-fade {
+  animation: fade-in-up 0.4s ease-out forwards;
+  animation-delay: var(--section-delay, 0ms);
+  opacity: 0;
+}
+
+/* Hover invert for buttons */
+.btn-terminal {
+  background: #000;
+  color: #fff;
+  border: 1px solid #fff;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.btn-terminal:hover:not(:disabled) {
+  background: #fff;
+  color: #000;
+}
+.btn-terminal:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Input terminal style */
+.input-terminal {
+  background: #000;
+  color: #fff;
+  border: 1px solid #fff;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  outline: none;
+}
+.input-terminal:focus {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+.input-terminal::placeholder {
+  color: #555;
 }

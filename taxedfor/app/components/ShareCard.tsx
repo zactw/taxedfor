@@ -11,14 +11,14 @@ interface ShareCardProps {
 }
 
 const HIGHLIGHT_ITEMS = [
-  { emoji: "🛡️", name: "Defense & Military", percent: 13.1 },
-  { emoji: "💳", name: "Interest on Nat'l Debt", percent: 13.2 },
-  { emoji: "🏥", name: "Medicare", percent: 14.8 },
-  { emoji: "👴", name: "Social Security", percent: 20.0 },
-  { emoji: "🌍", name: "Foreign Aid (USAID)", percent: 0.4 },
-  { emoji: "🚀", name: "NASA", percent: 0.4 },
-  { emoji: "🍎", name: "SNAP (Food Stamps)", percent: 1.7 },
-  { emoji: "📚", name: "Education", percent: 1.2 },
+  { name: "Defense & Military", percent: 13.1 },
+  { name: "Interest on Nat'l Debt", percent: 13.2 },
+  { name: "Medicare", percent: 14.8 },
+  { name: "Social Security", percent: 20.0 },
+  { name: "Foreign Aid (USAID)", percent: 0.4 },
+  { name: "NASA", percent: 0.4 },
+  { name: "SNAP (Food Stamps)", percent: 1.7 },
+  { name: "Education", percent: 1.2 },
 ];
 
 function formatDollars(n: number): string {
@@ -31,7 +31,7 @@ function formatDollars(n: number): string {
 }
 
 function formatCompact(n: number): string {
-  if (n < 1) return `${(n * 100).toFixed(1)}¢`;
+  if (n < 1) return `${(n * 100).toFixed(1)}c`;
   if (n < 100) return `$${n.toFixed(2)}`;
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -40,6 +40,17 @@ function formatCompact(n: number): string {
     maximumFractionDigits: 0,
   }).format(n);
 }
+
+// ASCII dollar sign art
+const DOLLAR_ART = [
+  "  ██████  ",
+  " ██  ████ ",
+  " ██ ██    ",
+  "  ████    ",
+  "    ████  ",
+  " ████  ██ ",
+  "  ██████  ",
+];
 
 export default function ShareCard({ federal, socialSecurity, medicare, stateTax, state }: ShareCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
@@ -53,7 +64,7 @@ export default function ShareCard({ federal, socialSecurity, medicare, stateTax,
     try {
       const html2canvas = (await import("html2canvas")).default;
       const canvas = await html2canvas(cardRef.current, {
-        backgroundColor: null,
+        backgroundColor: "#000000",
         scale: 2,
         useCORS: true,
         logging: false,
@@ -69,7 +80,7 @@ export default function ShareCard({ federal, socialSecurity, medicare, stateTax,
       if (isMobile && navigator.share && navigator.canShare?.({ files: [file] })) {
         await navigator.share({
           title: "Where My Tax Dollars Went — 2024",
-          text: `I paid ${formatDollars(totalTaxes)} in taxes in 2024. Here's the breakdown. 🇺🇸 taxedfor.com`,
+          text: `I paid ${formatDollars(totalTaxes)} in taxes in 2024. Here's the breakdown. taxedfor.com`,
           files: [file],
         });
       } else {
@@ -87,151 +98,117 @@ export default function ShareCard({ federal, socialSecurity, medicare, stateTax,
     }
   }
 
+  const mono = "'JetBrains Mono', 'Courier New', monospace";
+
   return (
-    <div className="mb-10">
+    <div style={{ marginBottom: "2rem" }}>
       {/* The shareable card */}
       <div
         ref={cardRef}
         style={{
-          background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)",
-          borderRadius: "20px",
-          padding: "32px",
-          border: "1px solid rgba(99,102,241,0.3)",
-          fontFamily: "system-ui, -apple-system, sans-serif",
+          backgroundColor: "#000000",
+          border: "1px solid #ffffff",
+          padding: "1.5rem",
+          fontFamily: mono,
+          color: "#ffffff",
         }}
       >
+        {/* ASCII box top */}
+        <div style={{ color: "#555", fontSize: "0.7rem", marginBottom: "0.5rem" }}>
+          ┌{'─'.repeat(48)}┐
+        </div>
+
+        {/* Dollar ASCII art */}
+        <div style={{ textAlign: "center", marginBottom: "1rem" }}>
+          {DOLLAR_ART.map((line, i) => (
+            <div key={i} style={{ fontSize: "0.65rem", letterSpacing: "0.05em", color: "#fff", lineHeight: "1.3" }}>
+              {line}
+            </div>
+          ))}
+        </div>
+
         {/* Header */}
-        <div style={{ textAlign: "center", marginBottom: "24px" }}>
-          <div
-            style={{
-              display: "inline-block",
-              background: "rgba(99,102,241,0.2)",
-              border: "1px solid rgba(99,102,241,0.4)",
-              borderRadius: "999px",
-              padding: "4px 16px",
-              color: "#a5b4fc",
-              fontSize: "12px",
-              fontWeight: 600,
-              letterSpacing: "0.05em",
-              textTransform: "uppercase",
-              marginBottom: "12px",
-            }}
-          >
-            🇺🇸 2024 Tax Year
+        <div style={{ textAlign: "center", marginBottom: "1.25rem" }}>
+          <div style={{ fontSize: "0.7rem", color: "#555", letterSpacing: "0.1em", marginBottom: "0.25rem" }}>
+            ── 2024 TAX YEAR ──────────────────────────────
           </div>
-          <h2
-            style={{
-              color: "#fff",
-              fontSize: "28px",
-              fontWeight: 800,
-              margin: "0 0 4px",
-              lineHeight: 1.2,
-              letterSpacing: "-0.02em",
-            }}
-          >
-            Where My Tax Dollars Went
-          </h2>
-          <p style={{ color: "#94a3b8", fontSize: "14px", margin: 0 }}>
-            Federal withholding breakdown
-          </p>
+          <div style={{ fontSize: "1rem", fontWeight: 700, letterSpacing: "0.1em" }}>
+            YOUR TAX BREAKDOWN 2024
+          </div>
+          <div style={{ fontSize: "0.7rem", color: "#888", marginTop: "0.2rem" }}>
+            federal withholding breakdown
+          </div>
         </div>
 
-        {/* Total box */}
-        <div
-          style={{
-            background: "rgba(16,185,129,0.15)",
-            border: "1px solid rgba(16,185,129,0.3)",
-            borderRadius: "12px",
-            padding: "16px",
-            textAlign: "center",
-            marginBottom: "20px",
-          }}
-        >
-          <p style={{ color: "#6ee7b7", fontSize: "12px", margin: "0 0 4px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-            Total Federal Withheld
-          </p>
-          <p style={{ color: "#fff", fontSize: "36px", fontWeight: 900, margin: 0, letterSpacing: "-0.03em" }}>
+        {/* Total */}
+        <div style={{ border: "1px solid #333", padding: "0.75rem 1rem", textAlign: "center", marginBottom: "1.25rem" }}>
+          <div style={{ fontSize: "0.7rem", color: "#555", letterSpacing: "0.1em", marginBottom: "0.25rem" }}>
+            TOTAL FEDERAL WITHHELD
+          </div>
+          <div style={{ fontSize: "1.8rem", fontWeight: 700, letterSpacing: "-0.02em" }}>
             {formatDollars(federal)}
-          </p>
-          <p style={{ color: "#64748b", fontSize: "11px", margin: "4px 0 0" }}>
-            {state ? `+ ${formatDollars(stateTax)} state (${state}) · ` : ""}
-            {formatDollars(socialSecurity + medicare)} FICA
-          </p>
+          </div>
+          {stateTax > 0 && (
+            <div style={{ fontSize: "0.7rem", color: "#555", marginTop: "0.25rem" }}>
+              + {formatDollars(stateTax)} state{state ? ` (${state})` : ""} · {formatDollars(socialSecurity + medicare)} FICA
+            </div>
+          )}
         </div>
 
-        {/* Line items grid */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "20px" }}>
+        {/* Line items */}
+        <div style={{ fontSize: "0.75rem" }}>
           {HIGHLIGHT_ITEMS.map((item) => {
             const amount = (federal * item.percent) / 100;
             return (
               <div
                 key={item.name}
                 style={{
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  borderRadius: "10px",
-                  padding: "10px 12px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
+                  display: "grid",
+                  gridTemplateColumns: "1fr auto",
+                  gap: "0.5rem",
+                  padding: "0.3rem 0",
+                  borderBottom: "1px solid #111",
                 }}
               >
-                <span style={{ fontSize: "18px", flexShrink: 0 }}>{item.emoji}</span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ color: "#cbd5e1", fontSize: "11px", margin: "0 0 2px", fontWeight: 600, lineHeight: 1.2 }}>
-                    {item.name}
-                  </p>
-                  <p style={{ color: "#a5b4fc", fontSize: "13px", fontWeight: 700, margin: 0 }}>
-                    {formatCompact(amount)}
-                  </p>
-                </div>
+                <span style={{ color: "#ccc" }}>{item.name}</span>
+                <span style={{ color: "#fff", fontWeight: 700, textAlign: "right" }}>
+                  {formatCompact(amount)}
+                </span>
               </div>
             );
           })}
         </div>
 
-        {/* Watermark footer */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            borderTop: "1px solid rgba(255,255,255,0.08)",
-            paddingTop: "14px",
-          }}
-        >
-          <p style={{ color: "#475569", fontSize: "11px", margin: 0 }}>
-            Based on FY2024 federal outlays (~$6.75T total)
-          </p>
-          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <span style={{ fontSize: "14px" }}>🦞</span>
-            <span style={{ color: "#6366f1", fontSize: "13px", fontWeight: 700, letterSpacing: "-0.01em" }}>
-              taxedfor.com
-            </span>
-          </div>
+        {/* Footer */}
+        <div style={{ marginTop: "1.25rem", borderTop: "1px solid #222", paddingTop: "0.75rem", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.7rem", color: "#444" }}>
+          <span>FY2024 federal outlays (~$6.75T total)</span>
+          <span style={{ color: "#fff", fontWeight: 700, letterSpacing: "0.1em" }}>TAXEDFOR.COM</span>
+        </div>
+
+        {/* ASCII box bottom */}
+        <div style={{ color: "#555", fontSize: "0.7rem", marginTop: "0.5rem" }}>
+          └{'─'.repeat(48)}┘
         </div>
       </div>
 
       {/* Share button */}
-      <div className="text-center mt-4">
+      <div style={{ textAlign: "center", marginTop: "0.75rem" }}>
         <button
           onClick={handleShare}
           disabled={sharing}
-          className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-xl transition-all duration-150 shadow-lg shadow-indigo-900/40"
+          className="btn-terminal"
+          style={{
+            padding: "0.6rem 1.5rem",
+            fontSize: "0.85rem",
+            fontFamily: "'JetBrains Mono', 'Courier New', monospace",
+            letterSpacing: "0.05em",
+          }}
         >
-          {sharing ? (
-            <>
-              <span className="animate-spin text-lg">⏳</span>
-              Generating...
-            </>
-          ) : (
-            <>
-              <span className="text-lg">📤</span>
-              Share My Breakdown
-            </>
-          )}
+          {sharing ? "[ GENERATING... ]" : "[ SHARE MY BREAKDOWN ]"}
         </button>
-        <p className="text-gray-600 text-xs mt-2">Saves as PNG — perfect for Twitter or Reddit</p>
+        <div style={{ color: "#333", fontSize: "0.7rem", marginTop: "0.4rem" }}>
+          &gt; saves as PNG — perfect for twitter or reddit
+        </div>
       </div>
     </div>
   );

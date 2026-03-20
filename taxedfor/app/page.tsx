@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import ResultsView from "./components/ResultsView";
 
 export interface W2Data {
@@ -14,31 +14,29 @@ export interface W2Data {
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<W2Data | null>(null);
+  const [showCursor, setShowCursor] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Blinking cursor
+  useEffect(() => {
+    const interval = setInterval(() => setShowCursor((v) => !v), 530);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleFile = useCallback((f: File) => {
     if (!f) return;
     const allowed = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
     if (!allowed.includes(f.type)) {
-      setError("Please upload a JPG, PNG, WebP, or PDF file.");
+      setError("> ERROR: accepts .jpg .png .webp .pdf only");
       return;
     }
     setError(null);
     setFile(f);
     setResults(null);
-
-    if (f.type.startsWith("image/")) {
-      const reader = new FileReader();
-      reader.onload = (e) => setPreview(e.target?.result as string);
-      reader.readAsDataURL(f);
-    } else {
-      setPreview(null);
-    }
   }, []);
 
   const onDrop = useCallback(
@@ -78,7 +76,7 @@ export default function Home() {
       const data: W2Data = await res.json();
       setResults(data);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      setError(`> ERROR: ${err instanceof Error ? err.message : "Something went wrong. Please try again."}`);
     } finally {
       setIsLoading(false);
     }
@@ -86,7 +84,6 @@ export default function Home() {
 
   const reset = () => {
     setFile(null);
-    setPreview(null);
     setResults(null);
     setError(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -97,120 +94,150 @@ export default function Home() {
   }
 
   return (
-    <main className="flex flex-col items-center justify-center min-h-screen px-4 py-16 bg-gray-950">
+    <main
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "100vh",
+        padding: "2rem 1rem",
+        backgroundColor: "#000",
+        color: "#fff",
+        fontFamily: "'JetBrains Mono', 'Courier New', monospace",
+      }}
+    >
       {/* Header */}
-      <div className="text-center mb-12">
-        <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-1.5 mb-6">
-          <span className="text-emerald-400 text-sm font-medium">🇺🇸 2024 Federal Budget Analysis</span>
+      <div className="flicker" style={{ textAlign: "center", marginBottom: "2.5rem" }}>
+        <div style={{ fontSize: "clamp(1.1rem, 4vw, 1.5rem)", fontWeight: 700, letterSpacing: "0.15em", marginBottom: "0.25rem" }}>
+          TAXEDFOR.COM
         </div>
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4 leading-tight">
-          See exactly where your<br />
-          <span className="text-emerald-400">tax dollars go</span>
-        </h1>
-        <p className="text-gray-400 text-lg max-w-xl mx-auto">
-          Upload your W2 and get a dollar-by-dollar breakdown of how the federal government spent your money.
-        </p>
+        <div style={{ color: "#555", fontSize: "0.75rem", letterSpacing: "0.1em" }}>
+          ══════════════════════════════════════════
+        </div>
+        <div style={{ marginTop: "1.25rem", fontSize: "clamp(1.4rem, 5vw, 2.2rem)", fontWeight: 700 }}>
+          <span>&gt; WHERE YOUR TAX DOLLARS GO</span>
+          <span
+            style={{
+              marginLeft: "2px",
+              opacity: showCursor ? 1 : 0,
+              transition: "opacity 0.1s",
+            }}
+          >
+            _
+          </span>
+        </div>
+        <div style={{ color: "#888", marginTop: "0.75rem", fontSize: "0.9rem" }}>
+          Upload your W-2. See the truth.
+        </div>
       </div>
 
       {/* Upload Box */}
-      <div className="w-full max-w-lg">
+      <div style={{ width: "100%", maxWidth: "540px" }}>
         {!file ? (
           <div
             onDrop={onDrop}
             onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
             onDragLeave={() => setIsDragging(false)}
             onClick={() => fileInputRef.current?.click()}
-            className={`
-              relative border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer transition-all duration-200
-              ${isDragging
-                ? "border-emerald-400 bg-emerald-400/5"
-                : "border-gray-700 hover:border-gray-500 hover:bg-gray-900/50"
-              }
-            `}
+            style={{
+              border: `1px solid ${isDragging ? "#fff" : "#444"}`,
+              padding: "0",
+              cursor: "pointer",
+              backgroundColor: isDragging ? "#111" : "#000",
+              transition: "all 0.15s",
+              fontFamily: "'JetBrains Mono', 'Courier New', monospace",
+            }}
           >
             <input
               ref={fileInputRef}
               type="file"
               accept=".jpg,.jpeg,.png,.webp,.pdf"
-              className="hidden"
+              style={{ display: "none" }}
               onChange={onInputChange}
             />
-            <div className="text-5xl mb-4">📄</div>
-            <p className="text-white font-semibold text-lg mb-1">
-              Drop your W2 here
-            </p>
-            <p className="text-gray-500 text-sm mb-4">
-              or click to browse
-            </p>
-            <div className="flex items-center justify-center gap-2 flex-wrap">
-              {["JPG", "PNG", "WebP", "PDF"].map((fmt) => (
-                <span key={fmt} className="bg-gray-800 text-gray-400 text-xs px-2 py-1 rounded">
-                  {fmt}
-                </span>
-              ))}
+            {/* ASCII Box top */}
+            <div style={{ padding: "0 1rem", color: "#444" }}>
+              <div>┌{'─'.repeat(45)}┐</div>
+            </div>
+            <div style={{ padding: "0 1rem" }}>
+              <div style={{ borderLeft: "1px solid #444", borderRight: "1px solid #444", padding: "1.5rem 1.5rem", textAlign: "center" }}>
+                <div style={{ color: "#888", marginBottom: "0.75rem", fontSize: "0.8rem", letterSpacing: "0.05em" }}>
+                  &gt; DROP FILE HERE OR CLICK TO UPLOAD
+                </div>
+                <div style={{ color: "#333", fontSize: "0.75rem", marginTop: "0.5rem" }}>
+                  accepts: .jpg .png .webp .pdf
+                </div>
+                <div style={{ marginTop: "1.25rem", fontSize: "2rem", color: "#444" }}>[ ▲ ]</div>
+              </div>
+            </div>
+            <div style={{ padding: "0 1rem", color: "#444" }}>
+              <div>└{'─'.repeat(45)}┘</div>
             </div>
           </div>
         ) : (
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-            {preview ? (
-              <div className="mb-4 rounded-xl overflow-hidden border border-gray-700">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={preview} alt="W2 preview" className="w-full max-h-64 object-contain bg-gray-800" />
-              </div>
-            ) : (
-              <div className="mb-4 bg-gray-800 rounded-xl p-8 text-center border border-gray-700">
-                <div className="text-4xl mb-2">📑</div>
-                <p className="text-gray-400 text-sm">{file.name}</p>
-              </div>
-            )}
-
-            <div className="flex items-center gap-3 text-sm text-gray-400 mb-5">
-              <span className="text-emerald-400">✓</span>
-              <span className="truncate font-medium text-gray-200">{file.name}</span>
-              <span className="text-gray-600">·</span>
-              <span>{(file.size / 1024).toFixed(1)} KB</span>
+          <div
+            style={{
+              border: "1px solid #fff",
+              fontFamily: "'JetBrains Mono', 'Courier New', monospace",
+            }}
+          >
+            {/* Top border */}
+            <div style={{ borderBottom: "1px solid #333", padding: "0.75rem 1rem", color: "#888", fontSize: "0.8rem" }}>
+              ┌─ FILE LOADED ─────────────────────────────────┐
             </div>
-
-            <div className="flex gap-3">
+            <div style={{ padding: "1rem 1.25rem" }}>
+              <div style={{ color: "#aaa", fontSize: "0.85rem", marginBottom: "0.25rem" }}>
+                &gt; loaded: <span style={{ color: "#fff" }}>{file.name}</span>
+              </div>
+              <div style={{ color: "#555", fontSize: "0.75rem" }}>
+                size: {(file.size / 1024).toFixed(1)} KB
+              </div>
+            </div>
+            <div style={{ borderTop: "1px solid #333", padding: "0.75rem 1.25rem", display: "flex", gap: "0.75rem" }}>
               <button
                 onClick={analyze}
                 disabled={isLoading}
-                className="flex-1 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-60 disabled:cursor-not-allowed text-black font-bold py-3 px-6 rounded-xl transition-colors duration-150"
+                className="btn-terminal"
+                style={{ flex: 1, padding: "0.6rem 1rem", fontSize: "0.85rem", fontWeight: 700, letterSpacing: "0.08em" }}
               >
                 {isLoading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                    </svg>
-                    Analyzing…
-                  </span>
+                  <span>[ ANALYZING... ]</span>
                 ) : (
-                  "🔍 Analyze W2"
+                  <span>[ ANALYZE{showCursor ? "_" : " "} ]</span>
                 )}
               </button>
               <button
                 onClick={reset}
                 disabled={isLoading}
-                className="bg-gray-800 hover:bg-gray-700 disabled:opacity-60 text-gray-300 font-medium py-3 px-4 rounded-xl transition-colors duration-150"
+                className="btn-terminal"
+                style={{ padding: "0.6rem 1rem", fontSize: "0.85rem", color: "#888", borderColor: "#444" }}
               >
-                ✕
+                [ X ]
               </button>
             </div>
           </div>
         )}
 
         {error && (
-          <div className="mt-4 bg-red-500/10 border border-red-500/30 rounded-xl p-4 text-red-400 text-sm">
-            ⚠️ {error}
+          <div
+            style={{
+              marginTop: "0.75rem",
+              border: "1px solid #555",
+              padding: "0.75rem 1rem",
+              color: "#aaa",
+              fontSize: "0.8rem",
+            }}
+          >
+            {error}
           </div>
         )}
       </div>
 
-      {/* Footer note */}
-      <p className="text-gray-600 text-xs mt-12 text-center max-w-sm">
-        Your W2 is analyzed locally and never stored. Data is sent to Claude AI for extraction only.
-      </p>
+      {/* Footer */}
+      <div style={{ color: "#333", fontSize: "0.7rem", marginTop: "2.5rem", textAlign: "center", maxWidth: "400px" }}>
+        &gt; w2 data analyzed via claude ai — never stored
+      </div>
     </main>
   );
 }
