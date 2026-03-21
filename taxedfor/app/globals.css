@@ -13,6 +13,8 @@ html, body {
   background-color: #000000;
   color: #ffffff;
   font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 17px;
+  line-height: 1.6;
 }
 
 /* Scanline overlay */
@@ -130,5 +132,5 @@ body::after {
   outline-offset: 2px;
 }
 .input-terminal::placeholder {
-  color: #555;
+  color: #666;
 }

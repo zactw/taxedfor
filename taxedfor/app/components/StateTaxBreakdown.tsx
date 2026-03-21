@@ -193,7 +193,7 @@ function BlockBar({ percent, maxPercent, delay = 0 }: { percent: number; maxPerc
   }, [targetFilled, delay]);
 
   return (
-    <span style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0", fontSize: "0.65rem", color: "#888" }}>
+    <span style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0", fontSize: "0.72rem", color: "#bbb" }}>
       {"█".repeat(filled)}{"░".repeat(BAR_WIDTH - filled)}
     </span>
   );
@@ -239,12 +239,12 @@ export default function StateTaxBreakdown({ stateTax, stateCode }: StateTaxBreak
                   fontFamily: mono,
                 }}
               >
-                <div style={{ color: "#ccc", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                <div style={{ color: "#e0e0e0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {item.name}
                 </div>
                 <div>
                   <BlockBar percent={item.percent} maxPercent={maxPercent} delay={i * 50} />
-                  <span style={{ color: "#666", fontSize: "0.7rem", marginLeft: "0.4rem" }}>
+                  <span style={{ color: "#bbb", fontSize: "0.72rem", marginLeft: "0.4rem" }}>
                     {item.percent.toFixed(1)}%
                   </span>
                 </div>
@@ -255,7 +255,7 @@ export default function StateTaxBreakdown({ stateTax, stateCode }: StateTaxBreak
             );
           })}
         </div>
-        <div style={{ color: "#333", fontSize: "0.7rem", textAlign: "center", marginTop: "0.75rem", fontFamily: mono }}>
+        <div style={{ color: "#888", fontSize: "0.7rem", textAlign: "center", marginTop: "0.75rem", fontFamily: mono }}>
           &gt; approx. based on {stateData.name} FY2024 enacted budget
         </div>
       </div>
@@ -271,18 +271,18 @@ export default function StateTaxBreakdown({ stateTax, stateCode }: StateTaxBreak
       <div style={{ border: "1px solid #333", padding: "1rem 1.25rem" }}>
         {/* Total */}
         <div style={{ textAlign: "center", marginBottom: "1rem", paddingBottom: "0.75rem", borderBottom: "1px solid #222" }}>
-          <div style={{ fontSize: "0.7rem", color: "#555", marginBottom: "0.2rem" }}>STATE TAX WITHHELD</div>
+          <div style={{ fontSize: "0.7rem", color: "#aaa", marginBottom: "0.2rem" }}>STATE TAX WITHHELD</div>
           <div style={{ fontSize: "1.4rem", fontWeight: 700, color: "#fff" }}>{formatDollars(stateTax)}</div>
-          {stateData && <div style={{ fontSize: "0.7rem", color: "#555", marginTop: "0.2rem" }}>{stateData.name}</div>}
+          {stateData && <div style={{ fontSize: "0.7rem", color: "#aaa", marginTop: "0.2rem" }}>{stateData.name}</div>}
         </div>
 
         {/* Not supported */}
         {!isSupported && code && (
           <div style={{ textAlign: "center", padding: "1.5rem 0", border: "1px solid #222" }}>
-            <div style={{ color: "#444", fontSize: "0.85rem", marginBottom: "0.3rem" }}>
+            <div style={{ color: "#bbb", fontSize: "0.85rem", marginBottom: "0.3rem" }}>
               &gt; {code} breakdown coming soon
             </div>
-            <div style={{ color: "#333", fontSize: "0.75rem" }}>
+            <div style={{ color: "#999", fontSize: "0.75rem" }}>
               adding all 50 states — check back soon
             </div>
           </div>
@@ -299,11 +299,11 @@ export default function StateTaxBreakdown({ stateTax, stateCode }: StateTaxBreak
                 <button
                   onClick={() => setShowPreview(true)}
                   className="btn-terminal"
-                  style={{ padding: "0.5rem 1.25rem", fontSize: "0.8rem", borderColor: "#555", color: "#888" }}
+                  style={{ padding: "0.5rem 1.25rem", fontSize: "0.8rem", borderColor: "#888", color: "#ccc" }}
                 >
                   [ PREVIEW STATE BREAKDOWN (PRO) ]
                 </button>
-                <div style={{ color: "#333", fontSize: "0.7rem", marginTop: "0.4rem" }}>
+                <div style={{ color: "#888", fontSize: "0.7rem", marginTop: "0.4rem" }}>
                   &gt; see a preview with upgrade option
                 </div>
               </div>
@@ -325,7 +325,7 @@ export default function StateTaxBreakdown({ stateTax, stateCode }: StateTaxBreak
                   <div style={{ color: "#fff", fontWeight: 700, fontSize: "0.9rem", marginBottom: "0.25rem" }}>
                     Pro Feature
                   </div>
-                  <div style={{ color: "#555", fontSize: "0.75rem", marginBottom: "1rem", textAlign: "center", maxWidth: "280px" }}>
+                  <div style={{ color: "#bbb", fontSize: "0.75rem", marginBottom: "1rem", textAlign: "center", maxWidth: "280px" }}>
                     Unlock state breakdowns and more with TaxedFor Pro
                   </div>
                   <a

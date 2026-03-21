@@ -114,7 +114,7 @@ export default function ShareCard({ federal, socialSecurity, medicare, stateTax,
         }}
       >
         {/* ASCII box top */}
-        <div style={{ color: "#555", fontSize: "0.7rem", marginBottom: "0.5rem" }}>
+        <div style={{ color: "#777", fontSize: "0.7rem", marginBottom: "0.5rem" }}>
           ┌{'─'.repeat(48)}┐
         </div>
 
@@ -129,27 +129,27 @@ export default function ShareCard({ federal, socialSecurity, medicare, stateTax,
 
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: "1.25rem" }}>
-          <div style={{ fontSize: "0.7rem", color: "#555", letterSpacing: "0.1em", marginBottom: "0.25rem" }}>
+          <div style={{ fontSize: "0.7rem", color: "#888", letterSpacing: "0.1em", marginBottom: "0.25rem" }}>
             ── 2024 TAX YEAR ──────────────────────────────
           </div>
           <div style={{ fontSize: "1rem", fontWeight: 700, letterSpacing: "0.1em" }}>
             YOUR TAX BREAKDOWN 2024
           </div>
-          <div style={{ fontSize: "0.7rem", color: "#888", marginTop: "0.2rem" }}>
+          <div style={{ fontSize: "0.7rem", color: "#bbb", marginTop: "0.2rem" }}>
             federal withholding breakdown
           </div>
         </div>
 
         {/* Total */}
         <div style={{ border: "1px solid #333", padding: "0.75rem 1rem", textAlign: "center", marginBottom: "1.25rem" }}>
-          <div style={{ fontSize: "0.7rem", color: "#555", letterSpacing: "0.1em", marginBottom: "0.25rem" }}>
+          <div style={{ fontSize: "0.7rem", color: "#aaa", letterSpacing: "0.1em", marginBottom: "0.25rem" }}>
             TOTAL FEDERAL WITHHELD
           </div>
           <div style={{ fontSize: "1.8rem", fontWeight: 700, letterSpacing: "-0.02em" }}>
             {formatDollars(federal)}
           </div>
           {stateTax > 0 && (
-            <div style={{ fontSize: "0.7rem", color: "#555", marginTop: "0.25rem" }}>
+            <div style={{ fontSize: "0.7rem", color: "#aaa", marginTop: "0.25rem" }}>
               + {formatDollars(stateTax)} state{state ? ` (${state})` : ""} · {formatDollars(socialSecurity + medicare)} FICA
             </div>
           )}
@@ -170,7 +170,7 @@ export default function ShareCard({ federal, socialSecurity, medicare, stateTax,
                   borderBottom: "1px solid #111",
                 }}
               >
-                <span style={{ color: "#ccc" }}>{item.name}</span>
+                <span style={{ color: "#e0e0e0" }}>{item.name}</span>
                 <span style={{ color: "#fff", fontWeight: 700, textAlign: "right" }}>
                   {formatCompact(amount)}
                 </span>
@@ -181,12 +181,12 @@ export default function ShareCard({ federal, socialSecurity, medicare, stateTax,
 
         {/* Footer */}
         <div style={{ marginTop: "1.25rem", borderTop: "1px solid #222", paddingTop: "0.75rem", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.7rem", color: "#444" }}>
-          <span>FY2024 federal outlays (~$6.75T total)</span>
+          <span style={{ color: "#aaa" }}>FY2024 federal outlays (~$6.75T total)</span>
           <span style={{ color: "#fff", fontWeight: 700, letterSpacing: "0.1em" }}>TAXEDFOR.COM</span>
         </div>
 
         {/* ASCII box bottom */}
-        <div style={{ color: "#555", fontSize: "0.7rem", marginTop: "0.5rem" }}>
+        <div style={{ color: "#777", fontSize: "0.7rem", marginTop: "0.5rem" }}>
           └{'─'.repeat(48)}┘
         </div>
       </div>
@@ -206,7 +206,7 @@ export default function ShareCard({ federal, socialSecurity, medicare, stateTax,
         >
           {sharing ? "[ GENERATING... ]" : "[ SHARE MY BREAKDOWN ]"}
         </button>
-        <div style={{ color: "#333", fontSize: "0.7rem", marginTop: "0.4rem" }}>
+        <div style={{ color: "#888", fontSize: "0.7rem", marginTop: "0.4rem" }}>
           &gt; saves as PNG — perfect for twitter or reddit
         </div>
       </div>

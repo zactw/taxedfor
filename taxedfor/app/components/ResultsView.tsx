@@ -219,16 +219,16 @@ function LineItem({
         alignItems: "center",
         padding: "0.35rem 0",
         borderBottom: "1px solid #1a1a1a",
-        fontSize: "0.75rem",
+        fontSize: "0.8rem",
       }}
     >
-      <div style={{ color: "#ccc", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+      <div style={{ color: "#e0e0e0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
         {item.name}
       </div>
-      <div style={{ color: "#888", fontSize: "0.7rem", whiteSpace: "nowrap" }}>
+      <div style={{ color: "#bbb", fontSize: "0.72rem", whiteSpace: "nowrap" }}>
         <BlockProgressBar percent={item.percent} maxPercent={maxPercent} delay={delay} />
       </div>
-      <div style={{ color: "#aaa", textAlign: "right", whiteSpace: "nowrap" }}>
+      <div style={{ color: "#ccc", textAlign: "right", whiteSpace: "nowrap" }}>
         {item.percent.toFixed(1)}%
       </div>
       <div style={{ color: "#fff", fontWeight: 700, textAlign: "right", whiteSpace: "nowrap" }}>
@@ -299,9 +299,9 @@ function CategorySection({
         aria-expanded={open}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <span style={{ color: "#555" }}>{open ? "[-]" : "[+]"}</span>
+          <span style={{ color: "#888" }}>{open ? "[-]" : "[+]"}</span>
           <span style={{ fontWeight: 700, letterSpacing: "0.08em" }}>{cfg.label}</span>
-          <span style={{ color: "#444", fontSize: "0.7rem" }}>({items.length} programs)</span>
+          <span style={{ color: "#888", fontSize: "0.7rem" }}>({items.length} programs)</span>
         </div>
         <div style={{ textAlign: "right", fontWeight: 700 }}>
           {formatDollars(totalAmount)}
@@ -310,7 +310,7 @@ function CategorySection({
 
       {/* Description */}
       {open && (
-        <div style={{ padding: "0.4rem 1rem", borderBottom: "1px solid #1a1a1a", color: "#555", fontSize: "0.7rem" }}>
+        <div style={{ padding: "0.4rem 1rem", borderBottom: "1px solid #1a1a1a", color: "#999", fontSize: "0.72rem" }}>
           {cfg.description}
         </div>
       )}
@@ -319,7 +319,7 @@ function CategorySection({
       {open && (
         <div style={{ padding: "0 1rem 0.5rem" }}>
           {items.length === 0 ? (
-            <div style={{ color: "#444", fontSize: "0.75rem", textAlign: "center", padding: "1rem 0" }}>
+            <div style={{ color: "#888", fontSize: "0.75rem", textAlign: "center", padding: "1rem 0" }}>
               &gt; no matching programs
             </div>
           ) : (
@@ -402,24 +402,24 @@ export default function ResultsView({ data, onReset }: Props) {
             ...mono,
           } as React.CSSProperties}
         >
-          <div style={{ borderBottom: "1px solid #333", padding: "0.6rem 1rem", color: "#888", fontSize: "0.75rem" }}>
+          <div style={{ borderBottom: "1px solid #333", padding: "0.6rem 1rem", color: "#bbb", fontSize: "0.75rem" }}>
             ┌─ ANALYSIS COMPLETE ─────────────────────────────────┐
           </div>
           <div style={{ padding: "1rem 1.25rem" }}>
-            <div style={{ fontSize: "0.8rem", color: "#666", marginBottom: "0.75rem", letterSpacing: "0.1em" }}>
+            <div style={{ fontSize: "0.8rem", color: "#777", marginBottom: "0.75rem", letterSpacing: "0.1em" }}>
               ══════════════════════════════════════════
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "0.3rem 1rem", fontSize: "0.85rem" }}>
-              <span style={{ color: "#aaa" }}>Federal Withheld:</span>
+              <span style={{ color: "#ddd" }}>Federal Withheld:</span>
               <span style={{ color: "#fff", textAlign: "right" }}><AnimatedDollar value={federal} delay={100} /></span>
 
-              <span style={{ color: "#aaa" }}>Social Security:</span>
+              <span style={{ color: "#ddd" }}>Social Security:</span>
               <span style={{ color: "#fff", textAlign: "right" }}><AnimatedDollar value={socialSecurity} delay={200} /></span>
 
-              <span style={{ color: "#aaa" }}>Medicare:</span>
+              <span style={{ color: "#ddd" }}>Medicare:</span>
               <span style={{ color: "#fff", textAlign: "right" }}><AnimatedDollar value={medicare} delay={300} /></span>
 
-              <span style={{ color: "#aaa" }}>State {state ? `(${state})` : "Tax"}:</span>
+              <span style={{ color: "#ddd" }}>State {state ? `(${state})` : "Tax"}:</span>
               <span style={{ color: "#fff", textAlign: "right" }}><AnimatedDollar value={stateTax} delay={400} /></span>
             </div>
             <div style={{ borderTop: "1px solid #333", marginTop: "0.75rem", paddingTop: "0.75rem", display: "grid", gridTemplateColumns: "1fr auto", fontSize: "0.95rem", fontWeight: 700 }}>
@@ -427,7 +427,7 @@ export default function ResultsView({ data, onReset }: Props) {
               <span style={{ textAlign: "right" }}><AnimatedDollar value={totalTaxes} delay={500} /></span>
             </div>
           </div>
-          <div style={{ borderTop: "1px solid #333", padding: "0.4rem 1rem", color: "#444", fontSize: "0.75rem" }}>
+          <div style={{ borderTop: "1px solid #333", padding: "0.4rem 1rem", color: "#777", fontSize: "0.75rem" }}>
             └─────────────────────────────────────────────────────┘
           </div>
         </div>
@@ -440,7 +440,7 @@ export default function ResultsView({ data, onReset }: Props) {
             border: "1px solid #333",
             padding: "0.6rem 1rem",
             marginBottom: "1.5rem",
-            color: "#666",
+            color: "#aaa",
             fontSize: "0.72rem",
             lineHeight: "1.6",
             ...mono,
@@ -484,10 +484,10 @@ export default function ResultsView({ data, onReset }: Props) {
                 <div style={{ color: "#fff", fontSize: "1rem", fontWeight: 700 }}>
                   <AnimatedDollar value={c.amount} delay={c.delay} />
                 </div>
-                <div style={{ color: "#444", fontSize: "0.7rem", marginTop: "0.25rem" }}>
+                <div style={{ color: "#999", fontSize: "0.7rem", marginTop: "0.25rem" }}>
                   {((c.amount / totalFica) * 100).toFixed(1)}% of FICA
                 </div>
-                <div style={{ marginTop: "0.5rem", fontSize: "0.65rem", color: "#555" }}>
+                <div style={{ marginTop: "0.5rem", fontSize: "0.65rem", color: "#bbb" }}>
                   <BlockProgressBar percent={c.amount} maxPercent={totalFica} delay={c.delay} />
                 </div>
               </div>
@@ -516,7 +516,7 @@ export default function ResultsView({ data, onReset }: Props) {
 
           {/* Search */}
           <div style={{ marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.5rem", ...mono }}>
-            <span style={{ color: "#888" }}>&gt; SEARCH PROGRAMS:</span>
+            <span style={{ color: "#bbb" }}>&gt; SEARCH PROGRAMS:</span>
             <input
               type="text"
               placeholder="e.g. NASA, SNAP, FBI..."
@@ -540,7 +540,7 @@ export default function ResultsView({ data, onReset }: Props) {
             )}
           </div>
           {searchQuery && (
-            <div style={{ color: "#555", fontSize: "0.7rem", marginBottom: "0.5rem" }}>
+            <div style={{ color: "#aaa", fontSize: "0.7rem", marginBottom: "0.5rem" }}>
               &gt; {totalMatches} result{totalMatches !== 1 ? "s" : ""} for &quot;{searchQuery}&quot;
             </div>
           )}
@@ -570,7 +570,7 @@ export default function ResultsView({ data, onReset }: Props) {
             border: "1px solid #222",
             padding: "0.75rem 1rem",
             marginBottom: "1.5rem",
-            color: "#555",
+            color: "#999",
             fontSize: "0.72rem",
             ...mono,
           }}
@@ -600,19 +600,19 @@ export default function ResultsView({ data, onReset }: Props) {
             borderBottom: "1px solid #222",
             padding: "0.75rem 1rem",
             marginBottom: "1.5rem",
-            color: "#444",
+            color: "#888",
             fontSize: "0.7rem",
             lineHeight: "1.6",
             ...mono,
           }}
         >
-          <div style={{ color: "#333", marginBottom: "0.25rem" }}>{'─'.repeat(60)}</div>
+          <div style={{ color: "#555", marginBottom: "0.25rem" }}>{'─'.repeat(60)}</div>
           <div>
             &gt; DISCLAIMER: Budget allocations are approximations based on publicly available federal spending data and may not reflect exact real-time figures. AI parsing may contain errors. Not financial or tax advice.{" "}
-            <Link href="/privacy" style={{ color: "#555", textDecoration: "underline" }}>[PRIVACY]</Link>{" "}
-            <Link href="/terms" style={{ color: "#555", textDecoration: "underline" }}>[TERMS]</Link>
+            <Link href="/privacy" style={{ color: "#aaa", textDecoration: "underline" }}>[PRIVACY]</Link>{" "}
+            <Link href="/terms" style={{ color: "#aaa", textDecoration: "underline" }}>[TERMS]</Link>
           </div>
-          <div style={{ color: "#333", marginTop: "0.25rem" }}>{'─'.repeat(60)}</div>
+          <div style={{ color: "#555", marginTop: "0.25rem" }}>{'─'.repeat(60)}</div>
         </div>
       </div>
     </main>

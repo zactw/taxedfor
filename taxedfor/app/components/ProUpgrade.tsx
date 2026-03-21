@@ -44,13 +44,13 @@ export default function ProUpgrade() {
       }}
     >
       {/* Top border label */}
-      <div style={{ borderBottom: "1px solid #333", padding: "0.6rem 1rem", color: "#888", fontSize: "0.75rem" }}>
+      <div style={{ borderBottom: "1px solid #333", padding: "0.6rem 1rem", color: "#bbb", fontSize: "0.75rem" }}>
         ┌─ UNLOCK TAXEDFOR PRO ───────────────────────────┐
       </div>
 
       <div style={{ padding: "1rem 1.25rem" }}>
         {/* Separator */}
-        <div style={{ color: "#333", fontSize: "0.75rem", marginBottom: "0.75rem", letterSpacing: "0.05em" }}>
+        <div style={{ color: "#555", fontSize: "0.75rem", marginBottom: "0.75rem", letterSpacing: "0.05em" }}>
           ─────────────────────────────────────────────────
         </div>
 
@@ -65,21 +65,21 @@ export default function ProUpgrade() {
                 gap: "0.5rem",
                 padding: "0.3rem 0",
                 fontSize: "0.8rem",
-                color: f.free ? "#444" : "#ccc",
+                color: f.free ? "#888" : "#ddd",
                 borderBottom: "1px solid #111",
               }}
             >
-              <span style={{ color: f.free ? "#333" : "#fff", fontWeight: 700, flexShrink: 0 }}>
+              <span style={{ color: f.free ? "#777" : "#fff", fontWeight: 700, flexShrink: 0 }}>
                 {f.free ? "[ ]" : "[✓]"}
               </span>
               <span style={{ flex: 1 }}>{f.name}</span>
               {f.badge && (
-                <span style={{ fontSize: "0.65rem", color: "#666", border: "1px solid #333", padding: "0 0.35rem" }}>
+                <span style={{ fontSize: "0.65rem", color: "#aaa", border: "1px solid #555", padding: "0 0.35rem" }}>
                   {f.badge}
                 </span>
               )}
               {f.free && (
-                <span style={{ fontSize: "0.65rem", color: "#333", fontStyle: "italic" }}>free</span>
+                <span style={{ fontSize: "0.65rem", color: "#888", fontStyle: "italic" }}>free</span>
               )}
             </div>
           ))}
@@ -87,9 +87,9 @@ export default function ProUpgrade() {
 
         {/* Price */}
         <div style={{ textAlign: "center", marginBottom: "1rem", padding: "0.75rem", border: "1px solid #333" }}>
-          <div style={{ fontSize: "0.7rem", color: "#555", marginBottom: "0.2rem" }}>ONE-TIME PAYMENT</div>
+          <div style={{ fontSize: "0.7rem", color: "#aaa", marginBottom: "0.2rem" }}>ONE-TIME PAYMENT</div>
           <div style={{ fontSize: "1.5rem", fontWeight: 700 }}>$4.99</div>
-          <div style={{ fontSize: "0.65rem", color: "#444" }}>no subscription. no nonsense.</div>
+          <div style={{ fontSize: "0.65rem", color: "#999" }}>no subscription. no nonsense.</div>
         </div>
 
         {/* CTA buttons */}
@@ -132,7 +132,7 @@ export default function ProUpgrade() {
       </div>
 
       {/* Bottom border label */}
-      <div style={{ borderTop: "1px solid #333", padding: "0.4rem 1rem", color: "#444", fontSize: "0.75rem" }}>
+      <div style={{ borderTop: "1px solid #333", padding: "0.4rem 1rem", color: "#777", fontSize: "0.75rem" }}>
         └─────────────────────────────────────────────────┘
       </div>
     </div>
