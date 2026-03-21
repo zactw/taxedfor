@@ -366,7 +366,7 @@ export default function Home() {
                 className="btn-terminal"
                 style={{ width: "100%", padding: "0.6rem 1rem", fontSize: "0.85rem", fontWeight: 700, letterSpacing: "0.08em" }}
               >
-                [ CALCULATE{showCursor ? "_" : " "} ]
+                [ CALCULATE ]
               </button>
             </div>
 
@@ -403,22 +403,14 @@ export default function Home() {
                   style={{ display: "none" }}
                   onChange={onInputChange}
                 />
-                <div style={{ padding: "0 1rem", color: "#444" }}>
-                  <div>┌{'─'.repeat(45)}┐</div>
-                </div>
-                <div style={{ padding: "0 1rem" }}>
-                  <div style={{ borderLeft: "1px solid #444", borderRight: "1px solid #444", padding: "1.5rem 1.5rem", textAlign: "center" }}>
-                    <div style={{ color: "#888", marginBottom: "0.75rem", fontSize: "0.8rem", letterSpacing: "0.05em" }}>
-                      &gt; DROP FILE HERE OR CLICK TO UPLOAD
-                    </div>
-                    <div style={{ color: "#333", fontSize: "0.75rem", marginTop: "0.5rem" }}>
-                      accepts: .jpg .png .webp .pdf
-                    </div>
-                    <div style={{ marginTop: "1.25rem", fontSize: "2rem", color: "#444" }}>[ ▲ ]</div>
+                <div style={{ padding: "2rem 1.5rem", textAlign: "center" }}>
+                  <div style={{ color: "#888", marginBottom: "0.75rem", fontSize: "0.8rem", letterSpacing: "0.05em" }}>
+                    &gt; DROP FILE HERE OR CLICK TO UPLOAD
                   </div>
-                </div>
-                <div style={{ padding: "0 1rem", color: "#444" }}>
-                  <div>└{'─'.repeat(45)}┘</div>
+                  <div style={{ color: "#555", fontSize: "0.75rem", marginTop: "0.5rem" }}>
+                    accepts: .jpg .png .webp .pdf
+                  </div>
+                  <div style={{ marginTop: "1.25rem", fontSize: "2rem", color: "#444" }}>[ ▲ ]</div>
                 </div>
               </div>
             ) : (
@@ -449,7 +441,7 @@ export default function Home() {
                     {isLoading ? (
                       <span>[ ANALYZING... ]</span>
                     ) : (
-                      <span>[ ANALYZE{showCursor ? "_" : " "} ]</span>
+                      <span>[ ANALYZE ]</span>
                     )}
                   </button>
                   <button
