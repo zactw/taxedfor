@@ -112,34 +112,7 @@ async function imageToBase64(buffer: Buffer, mimeType: string): Promise<{ base64
   };
 }
 
-async function pdfToImage(buffer: Buffer): Promise<{ base64: string; mediaType: "image/jpeg" }> {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-explicit-any
-  let pdf2pic: any;
-  try {
-    pdf2pic = require("pdf2pic");
-  } catch {
-    throw new Error("PDF processing is not available. Please upload a JPG, PNG, or WebP image.");
-  }
-
-  try {
-    const { fromBuffer } = pdf2pic;
-    const converter = fromBuffer(buffer, {
-      density: 150,
-      format: "jpeg",
-      width: 1700,
-      height: 2200,
-    });
-    const result = await converter(1, { responseType: "base64" });
-    if (result && result.base64) {
-      return { base64: result.base64, mediaType: "image/jpeg" };
-    }
-    throw new Error("PDF conversion failed. Please try uploading as an image.");
-  } catch (err) {
-    // Don't propagate internal details — throw a safe message
-    if (err instanceof Error && err.message.startsWith("PDF")) throw err;
-    throw new Error("Failed to process PDF. Please try uploading as an image.");
-  }
-}
+// PDF handling is done natively via the Claude document API — no conversion needed.
 
 function getClientIp(req: NextRequest): string {
   // Prefer forwarded header (set by Vercel / proxies), fall back to a placeholder
@@ -214,14 +187,36 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 7. Convert to image for Anthropic
-    let imageData: { base64: string; mediaType: "image/jpeg" | "image/png" | "image/webp" | "image/gif" };
+    // 7. Build content for Anthropic API
+    // PDFs are passed natively as documents; images are passed as base64 image blocks.
+    let messageContent: Anthropic.MessageParam["content"];
 
     if (mimeType === "application/pdf") {
-      const result = await pdfToImage(buffer);
-      imageData = result;
+      // Claude supports PDFs natively — no conversion, no native binaries required.
+      messageContent = [
+        {
+          type: "document",
+          source: {
+            type: "base64",
+            media_type: "application/pdf",
+            data: buffer.toString("base64"),
+          },
+        } as Anthropic.DocumentBlockParam,
+        { type: "text", text: USER_PROMPT },
+      ];
     } else {
-      imageData = await imageToBase64(buffer, mimeType);
+      const imageData = await imageToBase64(buffer, mimeType);
+      messageContent = [
+        {
+          type: "image",
+          source: {
+            type: "base64",
+            media_type: imageData.mediaType,
+            data: imageData.base64,
+          },
+        },
+        { type: "text", text: USER_PROMPT },
+      ];
     }
 
     // 8. Call Anthropic API
@@ -229,25 +224,7 @@ export async function POST(req: NextRequest) {
       model: "claude-3-5-sonnet-20241022",
       max_tokens: 512,
       system: SYSTEM_PROMPT,
-      messages: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "image",
-              source: {
-                type: "base64",
-                media_type: imageData.mediaType,
-                data: imageData.base64,
-              },
-            },
-            {
-              type: "text",
-              text: USER_PROMPT,
-            },
-          ],
-        },
-      ],
+      messages: [{ role: "user", content: messageContent }],
     });
 
     const text = response.content[0].type === "text" ? response.content[0].text : "";
