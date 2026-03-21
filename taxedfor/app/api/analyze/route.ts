@@ -221,7 +221,7 @@ export async function POST(req: NextRequest) {
 
     // 8. Call Anthropic API
     const response = await client.messages.create({
-      model: "claude-3-5-sonnet-20241022",
+      model: "claude-3-haiku-20240307",
       max_tokens: 512,
       system: SYSTEM_PROMPT,
       messages: [{ role: "user", content: messageContent }],
