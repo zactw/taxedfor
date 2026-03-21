@@ -1,4 +1,14 @@
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  description: "TaxedFor privacy policy. Learn how we handle your W-2 data and protect your privacy. Your tax documents are processed securely and never stored.",
+  openGraph: {
+    title: "Privacy Policy | TaxedFor",
+    description: "Learn how TaxedFor handles your W-2 data and protects your privacy.",
+  },
+};
 
 const mono: React.CSSProperties = {
   fontFamily: "'JetBrains Mono', 'Courier New', monospace",

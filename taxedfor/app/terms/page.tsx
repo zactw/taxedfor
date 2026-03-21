@@ -1,4 +1,14 @@
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Terms of Service",
+  description: "TaxedFor terms of service. Understand how to use our federal tax breakdown calculator and the limitations of our service.",
+  openGraph: {
+    title: "Terms of Service | TaxedFor",
+    description: "Terms of service for using TaxedFor tax breakdown calculator.",
+  },
+};
 
 const mono: React.CSSProperties = {
   fontFamily: "'JetBrains Mono', 'Courier New', monospace",
