@@ -6,6 +6,7 @@ import { W2Data } from "../page";
 import ShareCard from "./ShareCard";
 import StateTaxBreakdown from "./StateTaxBreakdown";
 import ProUpgrade from "./ProUpgrade";
+import type { BudgetData, BudgetItem as LiveBudgetItem } from "../api/budget-data/route";
 
 interface Props {
   data: W2Data;
@@ -23,7 +24,8 @@ interface BudgetItem {
   category: BudgetCategory;
 }
 
-const BUDGET_ITEMS: BudgetItem[] = [
+// Static fallback — used until live data loads or if API fails
+const BUDGET_ITEMS_FALLBACK: BudgetItem[] = [
   { name: "Social Security (OASDI)", description: "Monthly retirement, survivor, and disability payments to ~70 million Americans.", percent: 20.0, category: "Mandatory" },
   { name: "Medicare", description: "Federal health insurance for Americans 65+ and certain disabled individuals.", percent: 14.8, category: "Mandatory" },
   { name: "Medicaid & CHIP", description: "Health coverage for low-income adults, children, pregnant women, and people with disabilities.", percent: 9.1, category: "Mandatory" },
@@ -339,6 +341,63 @@ function CategorySection({
   );
 }
 
+// ─── Live Data Status Indicator ──────────────────────────────────────────────
+
+function LiveDataBadge({
+  isLive,
+  fiscalYear,
+  fiscalPeriod,
+  fetchedAt,
+}: {
+  isLive: boolean;
+  fiscalYear: number;
+  fiscalPeriod: number;
+  fetchedAt: string;
+}) {
+  const mono: React.CSSProperties = {
+    fontFamily: "'JetBrains Mono', 'Courier New', monospace",
+  };
+
+  if (!isLive) {
+    return (
+      <span
+        style={{
+          ...mono,
+          fontSize: "0.65rem",
+          color: "#666",
+          marginLeft: "0.5rem",
+        }}
+      >
+        [FY2024 static]
+      </span>
+    );
+  }
+
+  // Format period as abbreviated month
+  const PERIOD_MONTHS = ["Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep"];
+  const periodLabel = PERIOD_MONTHS[fiscalPeriod - 1] ?? `P${fiscalPeriod}`;
+
+  // Format fetched date
+  const updatedDate = fetchedAt
+    ? new Date(fetchedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+    : null;
+
+  return (
+    <span
+      title={updatedDate ? `Last fetched: ${updatedDate}` : undefined}
+      style={{
+        ...mono,
+        fontSize: "0.65rem",
+        color: "#4a9",
+        marginLeft: "0.5rem",
+        cursor: "help",
+      }}
+    >
+      [📡 Live FY{fiscalYear} thru {periodLabel}]
+    </span>
+  );
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function ResultsView({ data, onReset }: Props) {
@@ -347,6 +406,42 @@ export default function ResultsView({ data, onReset }: Props) {
   const totalTaxes = federal + totalFica + stateTax;
 
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Live budget data state
+  const [budgetItems, setBudgetItems] = useState<BudgetItem[]>(BUDGET_ITEMS_FALLBACK);
+  const [liveDataMeta, setLiveDataMeta] = useState<{
+    isLive: boolean;
+    fiscalYear: number;
+    fiscalPeriod: number;
+    fetchedAt: string;
+  }>({
+    isLive: false,
+    fiscalYear: 2024,
+    fiscalPeriod: 12,
+    fetchedAt: "",
+  });
+
+  // Fetch live budget data on mount
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/budget-data", { signal: controller.signal })
+      .then((r) => r.json())
+      .then((d: BudgetData) => {
+        if (d?.items?.length) {
+          setBudgetItems(d.items as BudgetItem[]);
+          setLiveDataMeta({
+            isLive: d.isLive,
+            fiscalYear: d.fiscalYear,
+            fiscalPeriod: d.fiscalPeriod,
+            fetchedAt: d.fetchedAt,
+          });
+        }
+      })
+      .catch(() => {
+        // silently fall back to static data — already set as default
+      });
+    return () => controller.abort();
+  }, []);
 
   const categories: BudgetCategory[] = ["Mandatory", "Defense", "Non-Defense", "Debt"];
 
@@ -358,7 +453,7 @@ export default function ResultsView({ data, onReset }: Props) {
       "Non-Defense": [],
       Debt: [],
     };
-    for (const item of BUDGET_ITEMS) {
+    for (const item of budgetItems) {
       if (
         !q ||
         item.name.toLowerCase().includes(q) ||
@@ -369,7 +464,7 @@ export default function ResultsView({ data, onReset }: Props) {
       }
     }
     return result;
-  }, [searchQuery]);
+  }, [searchQuery, budgetItems]);
 
   const totalMatches = useMemo(
     () => Object.values(filteredByCategory).reduce((s, arr) => s + arr.length, 0),
@@ -446,7 +541,7 @@ export default function ResultsView({ data, onReset }: Props) {
             ...mono,
           } as React.CSSProperties}
         >
-          &gt; ⚠ NOTICE: Figures are estimates based on FY2024 federal budget allocations.
+          &gt; ⚠ NOTICE: Figures are estimates based on {liveDataMeta.isLive ? `FY${liveDataMeta.fiscalYear} federal budget data from usaspending.gov` : "FY2024 federal budget allocations"}.
           AI parsing and public data sources may have slight inconsistencies with
           real-world tax figures. Not tax advice.
         </div>
@@ -511,7 +606,13 @@ export default function ResultsView({ data, onReset }: Props) {
               ...mono,
             } as React.CSSProperties}
           >
-            [FEDERAL BUDGET ALLOCATION] — {BUDGET_ITEMS.length} programs — {formatDollars(federal)}
+            [FEDERAL BUDGET ALLOCATION] — {budgetItems.length} programs — {formatDollars(federal)}
+            <LiveDataBadge
+              isLive={liveDataMeta.isLive}
+              fiscalYear={liveDataMeta.fiscalYear}
+              fiscalPeriod={liveDataMeta.fiscalPeriod}
+              fetchedAt={liveDataMeta.fetchedAt}
+            />
           </div>
 
           {/* Search */}
@@ -575,8 +676,13 @@ export default function ResultsView({ data, onReset }: Props) {
             ...mono,
           }}
         >
-          &gt; Percentages based on approximate FY2024 federal outlays (~$6.75T total).
+          &gt; Percentages based on {liveDataMeta.isLive ? `live FY${liveDataMeta.fiscalYear} federal outlays` : "approximate FY2024 federal outlays"}{" "}
+          (~${(liveDataMeta.isLive && liveDataMeta.fiscalPeriod < 12 ? "YTD" : "")}
+          {liveDataMeta.isLive ? "" : "$6.75T"} total).
           Your employer also matches your {formatDollars(totalFica)} in FICA taxes.
+          {liveDataMeta.isLive && (
+            <span style={{ color: "#4a9" }}> [Source: usaspending.gov]</span>
+          )}
         </div>
 
         {/* Pro Upgrade */}
