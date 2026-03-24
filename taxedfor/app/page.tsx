@@ -472,8 +472,8 @@ export default function Home() {
 
             {/* Privacy note */}
             <div style={{ marginTop: "0.75rem", color: "#888", fontSize: "0.72rem", ...mono }}>
-              <div>&gt; NOTE: Your W2 is processed by Claude AI and never stored.</div>
-              <div>&gt; For maximum privacy, use manual entry above.</div>
+              <div>&gt; NOTE: Your W2 is processed via AWS Textract (OCR only).</div>
+              <div>&gt; NO AI/LLM is used. Document is never stored.</div>
             </div>
           </div>
         )}
@@ -481,7 +481,7 @@ export default function Home() {
 
       {/* Footer */}
       <div style={{ color: "#777", fontSize: "0.7rem", marginTop: "2.5rem", textAlign: "center", maxWidth: "400px", ...mono }}>
-        &gt; w2 data processed locally or via claude ai — never stored
+        &gt; w2 data processed via OCR only — no AI/LLM — never stored
       </div>
 
       {/* Legal disclaimer footer */}
@@ -501,7 +501,7 @@ export default function Home() {
       >
         <div style={{ color: "#555", marginBottom: "0.25rem" }}>{'─'.repeat(60)}</div>
         <div>
-          &gt; DISCLAIMER: Budget allocations are approximations based on publicly available federal spending data and may not reflect exact real-time figures. AI parsing may contain errors. Not financial or tax advice.{" "}
+          &gt; DISCLAIMER: Budget allocations are approximations based on publicly available federal spending data. OCR parsing may contain errors. Not financial or tax advice.{" "}
           <Link href="/privacy" style={{ color: "#aaa", textDecoration: "underline" }}>[PRIVACY]</Link>{" "}
           <Link href="/terms" style={{ color: "#aaa", textDecoration: "underline" }}>[TERMS]</Link>
         </div>

@@ -105,7 +105,7 @@ export default function TermsPage() {
               reflect the most current fiscal year allocations.
             </p>
             <p style={{ margin: "0.5rem 0" }}>
-              &gt; AI-powered W-2 parsing may contain errors or misread values
+              &gt; OCR-based W-2 parsing may contain errors or misread values
               from your document. Always verify extracted numbers match your
               actual W-2 before relying on any output.
             </p>
@@ -177,7 +177,7 @@ export default function TermsPage() {
             </p>
             <p style={{ margin: 0 }}>
               &gt; To the fullest extent permitted by law, the operator shall
-              not be liable for any inaccuracies in budget data, AI parsing
+              not be liable for any inaccuracies in budget data, OCR parsing
               errors, damages, losses, or consequences arising from your use
               of this Service — including but not limited to reliance on
               figures for tax filing or financial decisions.
@@ -284,7 +284,7 @@ export default function TermsPage() {
         >
           <div style={{ color: "#333", marginBottom: "0.25rem" }}>{'─'.repeat(60)}</div>
           <div>
-            &gt; DISCLAIMER: Budget allocations are approximations based on publicly available federal spending data and may not reflect exact real-time figures. AI parsing may contain errors. Not financial or tax advice.{" "}
+            &gt; DISCLAIMER: Budget allocations are approximations based on publicly available federal spending data. OCR parsing may contain errors. Not financial or tax advice.{" "}
             <Link href="/privacy" style={{ color: "#555", textDecoration: "underline" }}>[PRIVACY]</Link>{" "}
             <Link href="/terms" style={{ color: "#555", textDecoration: "underline" }}>[TERMS]</Link>
           </div>

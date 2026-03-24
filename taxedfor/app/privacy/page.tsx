@@ -96,19 +96,26 @@ export default function PrivacyPage() {
         {/* Section: API Processing */}
         <div style={{ border: "1px solid #333", marginBottom: "1rem" }}>
           <div style={{ borderBottom: "1px solid #222", padding: "0.5rem 1rem", color: "#888", fontSize: "0.75rem" }}>
-            [04] API PROCESSING (W-2 UPLOAD MODE)
+            [04] W-2 UPLOAD PROCESSING
           </div>
           <div style={{ padding: "0.75rem 1rem", fontSize: "0.8rem", lineHeight: "1.8", color: "#ccc" }}>
             <p style={{ margin: "0 0 0.5rem" }}>
-              &gt; When you use the Upload W-2 feature, your document image is
-              sent to Anthropic&apos;s Claude API for AI-powered parsing.
+              &gt; When you upload a W-2, it is processed using AWS Textract,
+              an OCR (Optical Character Recognition) service.
             </p>
             <p style={{ margin: "0 0 0.5rem" }}>
-              &gt; This transmission is subject to Anthropic&apos;s privacy policy:
+              &gt; <strong style={{ color: "#fff" }}>NO AI or LLM (Large Language Model) is used.</strong> Your
+              tax document is NEVER sent to any artificial intelligence system.
+            </p>
+            <p style={{ margin: "0 0 0.5rem" }}>
+              &gt; AWS Textract processes documents in-memory only and does NOT
+              store any document data. Processing is instantaneous and data is
+              immediately discarded after extraction.
             </p>
             <p style={{ margin: 0 }}>
-              &gt; <a href="https://www.anthropic.com/privacy" target="_blank" rel="noopener noreferrer" style={{ color: "#fff", textDecoration: "underline" }}>
-                https://www.anthropic.com/privacy
+              &gt; AWS Textract privacy:{" "}
+              <a href="https://aws.amazon.com/textract/faqs/" target="_blank" rel="noopener noreferrer" style={{ color: "#fff", textDecoration: "underline" }}>
+                https://aws.amazon.com/textract/faqs/
               </a>
             </p>
           </div>
@@ -135,8 +142,9 @@ export default function PrivacyPage() {
           </div>
           <div style={{ padding: "0.75rem 1rem", fontSize: "0.8rem", lineHeight: "1.8", color: "#ccc" }}>
             <p style={{ margin: "0 0 0.5rem" }}>
-              &gt; Anthropic (Claude API) — W-2 document parsing. See their
-              privacy policy above.
+              &gt; AWS Textract — OCR-based W-2 document parsing. This is NOT
+              an AI/LLM service. Documents are processed in-memory only and
+              never stored by AWS.
             </p>
             <p style={{ margin: 0 }}>
               &gt; Stripe — Payment processing for Pro upgrades (if purchased).
@@ -216,7 +224,7 @@ export default function PrivacyPage() {
         >
           <div style={{ color: "#333", marginBottom: "0.25rem" }}>{'─'.repeat(60)}</div>
           <div>
-            &gt; DISCLAIMER: Budget allocations are approximations based on publicly available federal spending data and may not reflect exact real-time figures. AI parsing may contain errors. Not financial or tax advice.{" "}
+            &gt; DISCLAIMER: Budget allocations are approximations based on publicly available federal spending data. OCR parsing may contain errors. Not financial or tax advice.{" "}
             <Link href="/privacy" style={{ color: "#555", textDecoration: "underline" }}>[PRIVACY]</Link>{" "}
             <Link href="/terms" style={{ color: "#555", textDecoration: "underline" }}>[TERMS]</Link>
           </div>

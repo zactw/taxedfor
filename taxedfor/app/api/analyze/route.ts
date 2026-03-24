@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
 import {
   TextractClient,
   AnalyzeDocumentCommand,
@@ -7,55 +6,102 @@ import {
 } from "@aws-sdk/client-textract";
 
 // ─── Vercel environment variables to configure:
-// ANTHROPIC_API_KEY   — required for Claude fallback W2 parsing
-// AWS_ACCESS_KEY_ID   — optional: enables privacy-first Textract path (no LLM)
-// AWS_SECRET_ACCESS_KEY — optional: required alongside AWS_ACCESS_KEY_ID
-// AWS_REGION          — optional: defaults to us-east-1
+// AWS_ACCESS_KEY_ID     — required: AWS Textract credentials
+// AWS_SECRET_ACCESS_KEY — required: AWS Textract credentials
+// AWS_REGION            — optional: defaults to us-east-1
 //
-// When AWS credentials are present, Textract is used exclusively — no tax data
-// is ever sent to an LLM. When credentials are absent, Claude vision is used.
+// W-2 documents are processed EXCLUSIVELY via AWS Textract (OCR).
+// NO data is ever sent to any LLM or AI model.
+// Textract processes documents in-memory and does not store any data.
 
 export const maxDuration = 60;
 
 // ─── Rate Limiter (in-memory, per-IP) ────────────────────────────────────────
-// Simple sliding-window rate limiter: 10 requests per 60 seconds per IP.
+// Strict rate limiting to protect AWS costs:
+// - 5 requests per minute per IP
+// - 20 requests per day per IP
 // For production at scale, replace with Redis-backed solution (e.g. @upstash/ratelimit).
 
-const MAX_REQUESTS = 10;
-const WINDOW_MS = 60_000; // 1 minute
+const MAX_REQUESTS_PER_MINUTE = 5;
+const MAX_REQUESTS_PER_DAY = 20;
+const MINUTE_MS = 60_000;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 interface RateLimitEntry {
-  count: number;
-  windowStart: number;
+  minuteCount: number;
+  minuteStart: number;
+  dayCount: number;
+  dayStart: number;
 }
 
 const rateLimitMap = new Map<string, RateLimitEntry>();
 
-function checkRateLimit(ip: string): { allowed: boolean; remaining: number; resetAt: number } {
+function checkRateLimit(ip: string): { allowed: boolean; remaining: number; resetAt: number; reason?: string } {
   const now = Date.now();
-  const entry = rateLimitMap.get(ip);
+  let entry = rateLimitMap.get(ip);
 
-  if (!entry || now - entry.windowStart >= WINDOW_MS) {
-    rateLimitMap.set(ip, { count: 1, windowStart: now });
-    return { allowed: true, remaining: MAX_REQUESTS - 1, resetAt: now + WINDOW_MS };
+  // Initialize or reset windows
+  if (!entry) {
+    entry = { minuteCount: 0, minuteStart: now, dayCount: 0, dayStart: now };
+    rateLimitMap.set(ip, entry);
   }
 
-  if (entry.count >= MAX_REQUESTS) {
-    return { allowed: false, remaining: 0, resetAt: entry.windowStart + WINDOW_MS };
+  // Reset minute window if expired
+  if (now - entry.minuteStart >= MINUTE_MS) {
+    entry.minuteCount = 0;
+    entry.minuteStart = now;
   }
 
-  entry.count++;
-  return { allowed: true, remaining: MAX_REQUESTS - entry.count, resetAt: entry.windowStart + WINDOW_MS };
+  // Reset day window if expired
+  if (now - entry.dayStart >= DAY_MS) {
+    entry.dayCount = 0;
+    entry.dayStart = now;
+  }
+
+  // Check daily limit first
+  if (entry.dayCount >= MAX_REQUESTS_PER_DAY) {
+    return {
+      allowed: false,
+      remaining: 0,
+      resetAt: entry.dayStart + DAY_MS,
+      reason: "daily",
+    };
+  }
+
+  // Check per-minute limit
+  if (entry.minuteCount >= MAX_REQUESTS_PER_MINUTE) {
+    return {
+      allowed: false,
+      remaining: 0,
+      resetAt: entry.minuteStart + MINUTE_MS,
+      reason: "minute",
+    };
+  }
+
+  // Allow request
+  entry.minuteCount++;
+  entry.dayCount++;
+
+  return {
+    allowed: true,
+    remaining: Math.min(
+      MAX_REQUESTS_PER_MINUTE - entry.minuteCount,
+      MAX_REQUESTS_PER_DAY - entry.dayCount
+    ),
+    resetAt: entry.minuteStart + MINUTE_MS,
+  };
 }
 
+// Cleanup old entries every 5 minutes
 setInterval(() => {
   const now = Date.now();
   for (const [key, entry] of rateLimitMap.entries()) {
-    if (now - entry.windowStart >= WINDOW_MS * 2) {
+    // Remove entries that haven't been used in over a day
+    if (now - entry.dayStart >= DAY_MS * 2) {
       rateLimitMap.delete(key);
     }
   }
-}, WINDOW_MS * 5);
+}, MINUTE_MS * 5);
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -101,7 +147,6 @@ interface W2Data {
   stateTax: number;
   stateWages: number;
   state: string;
-  source: "textract" | "claude";
 }
 
 const MAX_DOLLARS = 999_999;
@@ -230,7 +275,6 @@ function parseTextractResponse(response: AnalyzeDocumentCommandOutput): W2Data {
     stateTax,
     stateWages,
     state,
-    source: "textract",
   };
 }
 
@@ -293,97 +337,6 @@ function findStateCode(
   return "";
 }
 
-// ─── Claude Vision Path ───────────────────────────────────────────────────────
-
-const anthropicClient = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
-
-const SYSTEM_PROMPT = `You are a tax document analyzer. Extract specific fields from W2 forms and return ONLY valid JSON with no additional text or markdown.`;
-
-const USER_PROMPT = `Extract these fields from this W2 form:
-- Box 2: Federal income tax withheld
-- Box 4: Social Security tax withheld
-- Box 6: Medicare tax withheld
-- Box 17: State income tax withheld
-- Box 16: State wages, tips, etc.
-- Box 15: State abbreviation (2-letter code)
-
-Return ONLY this JSON (no markdown, no explanation):
-{ "federal": <number>, "socialSecurity": <number>, "medicare": <number>, "stateTax": <number>, "stateWages": <number>, "state": "<2-letter state code or empty string>" }
-
-Use 0 for any field not found. All monetary values should be plain numbers (no $ or commas).`;
-
-async function processWithClaude(buffer: Buffer, mimeType: string): Promise<W2Data> {
-  let messageContent: Anthropic.MessageParam["content"];
-
-  if (mimeType === "application/pdf") {
-    messageContent = [
-      {
-        type: "document",
-        source: {
-          type: "base64",
-          media_type: "application/pdf",
-          data: buffer.toString("base64"),
-        },
-      } as Anthropic.DocumentBlockParam,
-      { type: "text", text: USER_PROMPT },
-    ];
-  } else {
-    const base64 = buffer.toString("base64");
-    const mediaType = mimeType as "image/jpeg" | "image/png" | "image/webp" | "image/gif";
-    messageContent = [
-      {
-        type: "image",
-        source: {
-          type: "base64",
-          media_type: mediaType,
-          data: base64,
-        },
-      },
-      { type: "text", text: USER_PROMPT },
-    ];
-  }
-
-  const response = await anthropicClient.messages.create({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 512,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: messageContent }],
-  });
-
-  const text = response.content[0].type === "text" ? response.content[0].text : "";
-
-  let parsed: {
-    federal: unknown;
-    socialSecurity: unknown;
-    medicare: unknown;
-    stateTax: unknown;
-    stateWages: unknown;
-    state: unknown;
-  };
-
-  try {
-    const cleaned = text.replace(/```json\n?|\n?```/g, "").trim();
-    parsed = JSON.parse(cleaned);
-  } catch {
-    console.error("Failed to parse AI response as JSON");
-    throw new Error("Failed to extract tax data from document");
-  }
-
-  const rawState = String(parsed.state ?? "").trim().toUpperCase();
-  const state = /^[A-Z]{2}$/.test(rawState) ? rawState : "";
-
-  return {
-    federal: sanitizeDollar(parsed.federal),
-    socialSecurity: sanitizeDollar(parsed.socialSecurity),
-    medicare: sanitizeDollar(parsed.medicare),
-    stateTax: sanitizeDollar(parsed.stateTax),
-    stateWages: sanitizeDollar(parsed.stateWages),
-    state,
-    source: "claude",
-  };
-}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -400,16 +353,21 @@ function getClientIp(req: NextRequest): string {
 export async function POST(req: NextRequest) {
   // 1. Rate limiting
   const ip = getClientIp(req);
-  const { allowed, remaining, resetAt } = checkRateLimit(ip);
+  const { allowed, remaining, resetAt, reason } = checkRateLimit(ip);
 
   if (!allowed) {
+    const isDaily = reason === "daily";
     return NextResponse.json(
-      { error: "Too many requests. Please wait before trying again." },
+      {
+        error: isDaily
+          ? "Daily limit reached (20 requests/day). Please try again tomorrow."
+          : "Too many requests. Please wait 1 minute before trying again.",
+      },
       {
         status: 429,
         headers: {
           "Retry-After": String(Math.ceil((resetAt - Date.now()) / 1000)),
-          "X-RateLimit-Limit": String(MAX_REQUESTS),
+          "X-RateLimit-Limit": String(isDaily ? MAX_REQUESTS_PER_DAY : MAX_REQUESTS_PER_MINUTE),
           "X-RateLimit-Remaining": "0",
           "X-RateLimit-Reset": String(Math.ceil(resetAt / 1000)),
         },
@@ -459,25 +417,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 7. Choose processing path: Textract (privacy-first) or Claude (LLM fallback)
-    const hasAwsCredentials = !!(
-      process.env.AWS_ACCESS_KEY_ID &&
-      process.env.AWS_SECRET_ACCESS_KEY
-    );
-
-    let result: W2Data;
-
-    if (hasAwsCredentials) {
-      // Privacy-first path: AWS Textract — no tax data sent to any LLM
-      result = await processWithTextract(buffer);
-    } else {
-      // Fallback path: Claude vision — used when AWS credentials are not configured
-      result = await processWithClaude(buffer, mimeType);
+    // 7. Process with AWS Textract (OCR only — NO LLM/AI)
+    if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
+      console.error("AWS credentials not configured");
+      return NextResponse.json(
+        { error: "Service temporarily unavailable. Please try again later." },
+        { status: 503 }
+      );
     }
+
+    const result = await processWithTextract(buffer);
 
     return NextResponse.json(result, {
       headers: {
-        "X-RateLimit-Limit": String(MAX_REQUESTS),
+        "X-RateLimit-Limit": `${MAX_REQUESTS_PER_MINUTE}/min, ${MAX_REQUESTS_PER_DAY}/day`,
         "X-RateLimit-Remaining": String(remaining),
         "X-RateLimit-Reset": String(Math.ceil(resetAt / 1000)),
       },

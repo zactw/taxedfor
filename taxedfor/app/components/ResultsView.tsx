@@ -542,7 +542,7 @@ export default function ResultsView({ data, onReset }: Props) {
           } as React.CSSProperties}
         >
           &gt; ⚠ NOTICE: Figures are estimates based on {liveDataMeta.isLive ? `FY${liveDataMeta.fiscalYear} federal budget data from usaspending.gov` : "FY2024 federal budget allocations"}.
-          AI parsing and public data sources may have slight inconsistencies with
+          OCR parsing and public data sources may have slight inconsistencies with
           real-world tax figures. Not tax advice.
         </div>
 
@@ -714,7 +714,7 @@ export default function ResultsView({ data, onReset }: Props) {
         >
           <div style={{ color: "#555", marginBottom: "0.25rem" }}>{'─'.repeat(60)}</div>
           <div>
-            &gt; DISCLAIMER: Budget allocations are approximations based on publicly available federal spending data and may not reflect exact real-time figures. AI parsing may contain errors. Not financial or tax advice.{" "}
+            &gt; DISCLAIMER: Budget allocations are approximations based on publicly available federal spending data. OCR parsing may contain errors. Not financial or tax advice.{" "}
             <Link href="/privacy" style={{ color: "#aaa", textDecoration: "underline" }}>[PRIVACY]</Link>{" "}
             <Link href="/terms" style={{ color: "#aaa", textDecoration: "underline" }}>[TERMS]</Link>
           </div>

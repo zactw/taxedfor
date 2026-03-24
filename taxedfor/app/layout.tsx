@@ -154,7 +154,7 @@ const faqJsonLd = {
       name: "Is my W-2 data stored?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "No. Your W-2 is processed by Claude AI for data extraction and is never stored on our servers. For maximum privacy, you can use manual entry instead of uploading.",
+        text: "No. Your W-2 is processed using AWS Textract (OCR technology) — not AI or any LLM. Your document is never stored and is processed in-memory only. For maximum privacy, you can use manual entry instead of uploading.",
       },
     },
     {
